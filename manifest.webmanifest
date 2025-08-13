@@ -1,8 +1,9 @@
 {
   "name": "Cone Trainer",
-  "short_name": "Trainer",
+  "short_name": "MC-Trainer",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0a0f16",
   "theme_color": "#0a0f16"
 }
+
