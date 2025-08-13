@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+
+<!-- iPhone: avvio a tutto schermo -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#0a0f16" />
+<link rel="manifest" href="manifest.webmanifest" />
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Cone Trainer — Mobile Touch/Scroll Fix</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#111720; --muted:#8ea0b5; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+    --neutral:#0a0f16; --radius:16px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html, body{
+    height:100%;
+    /* 🔒 niente scroll laterale */
+    overflow-x:hidden;
+  }
+  body{
+    margin:0; background:var(--bg); color:#e8eef6;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+    display:grid; grid-template-rows:auto 1fr; gap:10px;
+  }
+
+  header{
+    padding:10px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    background:linear-gradient(180deg,#0f1622,#0b1018); border-bottom:1px solid #1b2433;
+  }
+  header h1{font-size:18px; margin:0; color:#cfe1ff}
+  .small{font-size:12px; color:#93a7c4}
+
+  /* --- LAYOUT --- */
+  .container{
+    display:grid; grid-template-columns:360px 1fr; gap:14px; padding:14px; min-height:0;
+    max-width:100%;
+    overflow-x:hidden; /* extra safety */
+  }
+  @media (max-width:900px){ .container{grid-template-columns:1fr; gap:10px; padding:10px} }
+
+  .panel{
+    background:var(--panel); border:1px solid #1b2433; border-radius:var(--radius); padding:14px; overflow:auto;
+    box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03);
+  }
+
+  /* ✅ Settings sempre sopra al display, così i bottoni sono sempre tappabili */
+  .panel.settings{ position:relative; z-index:5; }
+
+  .panel h2{font-size:15px; margin:0 0 10px; color:#cdd9ea}
+
+  .row{display:grid; grid-template-columns:1fr 180px; align-items:center; gap:10px; margin:10px 0; max-width:100%}
+  @media (max-width:900px){ .row{grid-template-columns:1fr; gap:6px} }
+
+  .row-full{display:grid; gap:10px; margin:10px 0}
+  label{font-size:13px; color:#c4d2e6}
+  input,select{
+    width:100%; padding:12px 14px; border-radius:12px; border:1px solid #2a374b; background:#0e1420; color:#eaf2ff; outline:none;
+    font-size:16px;
+    max-width:100%;
+  }
+  input[type="number"]{appearance:textfield}
+  input[type="color"]{padding:0; height:44px}
+  .colors{display:grid; grid-template-columns:1fr 100px; gap:10px; align-items:center; max-width:100%}
+  .colors .idx{font-size:12px; color:#9fb0c8}
+
+  .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
+  .btns button{flex:1}
+  button{
+    padding:12px 16px; border:none; border-radius:14px; color:white; background:#23334a; box-shadow:0 8px 20px rgba(0,0,0,.2);
+    font-size:16px; min-width:120px;
+    /* 🫰 iOS touch */
+    touch-action:manipulation;
+    pointer-events:auto;
+    cursor:pointer;
+  }
+  button.primary{background:var(--accent)} button.success{background:var(--ok)} button.warn{background:var(--warn)} button.danger{background:var(--danger)} button.ghost{background:#1a2332}
+  button:disabled{opacity:.5; cursor:not-allowed}
+  .toggle{display:flex; align-items:center; gap:8px; font-size:14px; color:#cbd8ec}
+  .legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+  .chip{display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid #2a374b; background:#0e1420; font-size:12px; color:#d2def0}
+  .dot{width:14px; height:14px; border-radius:50%; border:1px solid rgba(0,0,0,.25)}
+  .hidden{display:none}
+
+  /* 🔒 la sezione Settings scorre solo in verticale (gesto orizzontale bloccato) */
+  .panel.settings{
+    overscroll-behavior-x:contain;
+    touch-action:pan-y;
+  }
+
+  /* --- DISPLAY --- */
+  .display{
+    position:relative; border-radius:var(--radius); overflow:hidden;
+    border:1px solid #1b2433; background:var(--neutral); min-height:70dvh;
+    z-index:1;
+  }
+  .stage{position:absolute; inset:0; display:grid; place-items:center; transition:background-color .18s ease}
+  .stage-inner{text-align:center; padding:24px}
+
+  /* Barra fase */
+  .phasebar{
+    position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0;
+    display:flex; align-items:center; justify-content:center; padding:0 10px; pointer-events:none;
+  }
+  .phaseText{
+    pointer-events:auto;
+    font-size:clamp(13px, 4.2vw, 18px);
+    line-height:1.25; text-transform:uppercase; letter-spacing:.02em;
+    color:#dbe9ff; text-align:center;
+    background:rgba(10,16,24,.60);
+    padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.08);
+    max-width:96vw; white-space:normal; word-break:break-word;
+  }
+  .setTag{
+    position:absolute; left:10px; top:calc(8px + env(safe-area-inset-top));
+    font-size:12px; color:#b0c4de; background:rgba(10,16,24,.55); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06)
+  }
+
+  /* Numero enorme */
+  .big{
+    font-weight:900; line-height:1; margin:.05em 0;
+    font-size:clamp(72px, 28dvh, 240px);
+    letter-spacing:.02em; color:#fff;
+    text-shadow:
+      0 0 8px rgba(0,0,0,.65),
+      0 0 24px rgba(0,0,0,.45),
+      -2px -2px 0 rgba(0,0,0,.85),
+      2px -2px 0 rgba(0,0,0,.85),
+      -2px 2px 0 rgba(0,0,0,.85),
+      2px 2px 0 rgba(0,0,0,.85);
+  }
+  /* Parole (PAUSA, RECUPERO, …) */
+  .big.word{
+    font-size: clamp(36px, 12dvh, 96px);
+    line-height: 1.05;
+    max-width: 96vw;
+    white-space: normal;
+    word-break: break-word;
+    text-align: center;
+    padding: 0 2vw;
+    letter-spacing: .01em;
+  }
+
+  .timer{
+    font-size:clamp(14px,3.5vw,22px); color:#e9f3ff; opacity:.95; font-variant-numeric:tabular-nums;
+    background:rgba(10,16,24,.5); padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06);
+    display:inline-block;
+  }
+
+  .hint{position:absolute; bottom:10px; right:10px; font-size:12px; color:#a8b9d0; background:rgba(10,16,24,.5); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06)}
+
+  /* FOCUS MODE */
+  body.focus header .small{display:none}
+  body.focus .container{padding:0; gap:0; grid-template-columns:1fr}
+  body.focus .panel.settings{display:none}
+  body.focus .display{border-radius:0; border:none; height:100dvh; min-height:100dvh}
+  body.focus .hint{display:none}
+
+  .reveal{
+    position:fixed; left:12px; bottom:calc(12px + env(safe-area-inset-bottom));
+    z-index:50; padding:12px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08);
+    background:rgba(12,18,28,.82); color:#eaf2ff; backdrop-filter: blur(8px) saturate(1.2);
+    font-size:15px;
+    touch-action:manipulation;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Cone Trainer</h1>
+    <div class="small">Touch fix + scroll verticale. Tap/Spazio = Pausa/Riprendi.</div>
+  </header>
+
+  <div class="container">
+    <section class="panel settings">
+      <h2>Impostazioni</h2>
+
+      <div class="row">
+        <label for="mode">Modalità</label>
+        <select id="mode">
+          <option value="color">Colori</option>
+          <option value="number">Numeri</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <label for="workSeconds">LAVORO (secondi)</label>
+        <input id="workSeconds" type="number" min="5" value="30" />
+      </div>
+
+      <div class="row">
+        <label for="restSeconds">PAUSA (secondi)</label>
+        <input id="restSeconds" type="number" min="0" value="15" />
+      </div>
+
+      <div class="row">
+        <label for="sets">SET</label>
+        <input id="sets" type="number" min="1" value="5" />
+      </div>
+
+      <div class="row">
+        <label for="intervalSeconds">Intervallo segnali (s) in LAVORO</label>
+        <input id="intervalSeconds" type="number" min="0.3" step="0.1" value="2" />
+      </div>
+
+      <div class="row">
+        <label for="startDelay">Countdown iniziale (s)</label>
+        <input id="startDelay" type="number" min="0" value="3" />
+      </div>
+
+      <!-- Colori -->
+      <div id="colorBlock">
+        <div class="row">
+          <label for="colorCount">Quanti colori (coni)?</label>
+          <input id="colorCount" type="number" min="1" max="12" value="5" />
+        </div>
+        <div id="colorInputs" class="row-full"></div>
+      </div>
+
+      <!-- Numeri -->
+      <div id="numberBlock" class="hidden">
+        <div class="row">
+          <label for="numberCount">Quanti numeri (coni)?</label>
+          <input id="numberCount" type="number" min="1" max="20" value="5" />
+        </div>
+        <div class="small">Metti i coni in ordine 1..N. Il display mostrerà il numero da raggiungere.</div>
+      </div>
+
+      <div class="row">
+        <label class="toggle"><input id="beepToggle" type="checkbox" checked /> Suono al cambio e cambio fase</label>
+      </div>
+      <div class="row">
+        <label class="toggle"><input id="ttsToggle" type="checkbox" /> Annuncia numero a voce (beta)</label>
+      </div>
+
+      <div class="btns">
+        <button id="startBtn" class="primary">Avvia</button>
+        <button id="pauseBtn" class="warn" disabled>Pausa</button>
+        <button id="resumeBtn" class="success" disabled>Riprendi</button>
+        <button id="stopBtn" class="danger">Stop</button>
+        <button id="fsBtn" class="ghost">Schermo intero</button>
+      </div>
+
+      <div class="legend" id="legend"></div>
+    </section>
+
+    <section class="display panel" id="displayPanel">
+      <div class="stage" id="stage">
+        <div class="setTag" id="setInfo">Set —</div>
+
+        <div class="phasebar">
+          <div class="phaseText" id="phaseLabel">PRONTO</div>
+        </div>
+
+        <div class="stage-inner" id="hitArea">
+          <div class="big" id="mainLabel">—</div>
+          <div class="timer"><span id="timeLeft">0.0</span> s</div>
+        </div>
+
+        <div class="hint">Tap/Spazio = Pausa · F = Fullscreen</div>
+      </div>
+    </section>
+  </div>
+
+  <button id="revealBtn" class="reveal hidden">Mostra controlli</button>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const els = {
+    mode:$('mode'), workSeconds:$('workSeconds'), restSeconds:$('restSeconds'), sets:$('sets'),
+    intervalSeconds:$('intervalSeconds'), startDelay:$('startDelay'),
+    colorBlock:$('colorBlock'), colorCount:$('colorCount'), colorInputs:$('colorInputs'),
+    numberBlock:$('numberBlock'), numberCount:$('numberCount'), legend:$('legend'),
+    startBtn:$('startBtn'), pauseBtn:$('pauseBtn'), resumeBtn:$('resumeBtn'), stopBtn:$('stopBtn'), fsBtn:$('fsBtn'),
+    stage:$('stage'), phaseLabel:$('phaseLabel'), mainLabel:$('mainLabel'), timeLeft:$('timeLeft'), setInfo:$('setInfo'),
+    beepToggle:$('beepToggle'), ttsToggle:$('ttsToggle'), revealBtn:$('revealBtn'), hitArea:$('hitArea')
+  };
+
+  const defaultPalette = ['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ff9f0a','#32ade6','#ff2d55','#5ac8fa','#ffdb4d','#30d158','#bf5af2'];
+
+  let app = {
+    running:false, paused:false, phase:'idle', mode:'color',
+    setIndex:0, totalSets:0, workMs:0, restMs:0, intervalMs:0, countdownMs:0,
+    colors:[], numbers:0, currentIdx:-1, startTs:0, phaseEndTs:0, nextSignalTs:0, pauseTs:0,
+    rafId:null, audioCtx:null, lastSpoken:-1
+  };
+
+  /* UI builders */
+  function buildColorInputs(n){
+    els.colorInputs.innerHTML='';
+    for(let i=0;i<n;i++){
+      const wrap=document.createElement('div'); wrap.className='colors';
+      const label=document.createElement('div'); label.className='idx'; label.textContent=`Colore ${i+1}`;
+      const input=document.createElement('input'); input.type='color'; input.value=defaultPalette[i%defaultPalette.length]; input.id=`color_${i}`;
+      wrap.append(label,input); els.colorInputs.appendChild(wrap);
+    }
+    renderLegend();
+  }
+  function getSelectedColors(){
+    const n = clamp(int(els.colorCount.value,5),1,12);
+    const arr=[]; for(let i=0;i<n;i++){ arr.push((document.getElementById(`color_${i}`)?.value)||defaultPalette[i%defaultPalette.length]); }
+    return arr;
+  }
+  function renderLegend(){
+    els.legend.innerHTML='';
+    if(app.mode==='color'){
+      const colors=getSelectedColors();
+      colors.forEach((c,i)=>{
+        const chip=document.createElement('div'); chip.className='chip';
+        const dot=document.createElement('div'); dot.className='dot'; dot.style.background=c;
+        const txt=document.createElement('span'); txt.textContent=`#${i+1}`;
+        chip.append(dot,txt); els.legend.appendChild(chip);
+      });
+    } else {
+      const n=clamp(int(els.numberCount.value,5),1,20);
+      for(let i=1;i<=n;i++){ const chip=document.createElement('div'); chip.className='chip'; chip.textContent=`N° ${i}`; els.legend.appendChild(chip); }
+    }
+  }
+
+  /* Helpers */
+  function int(v,d=0){ const n=parseInt(v,10); return isNaN(n)?d:n; }
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function fmtSec(ms){ return Math.ceil(ms/100)/10; }
+  function setBg(c){ els.stage.style.background=c; }
+  function setPhase(p){ app.phase=p; els.phaseLabel.textContent=p.toUpperCase(); }
+  function setMainLabel(t){
+    const str = String(t);
+    const isNumeric = /^#?\d+$/.test(str);
+    els.mainLabel.classList.toggle('word', !isNumeric);
+    els.mainLabel.textContent = str;
+  }
+  function setTimeLeft(ms){ els.timeLeft.textContent=fmtSec(ms).toFixed(1); }
+  function setSetInfo(){ els.setInfo.textContent=`Set ${app.setIndex+1} di ${app.totalSets}`; }
+  function chooseNextIndex(pool){ if(pool<=1) return 0; let idx; do{ idx=Math.floor(Math.random()*pool); } while(idx===app.currentIdx); app.currentIdx=idx; return idx; }
+
+  /* Audio / Voice */
+  function beep(freq=880, dur=0.08, type='sine'){
+    if(!els.beepToggle.checked) return;
+    try{
+      if(!app.audioCtx){ app.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+      const ctx=app.audioCtx, o=ctx.createOscillator(), g=ctx.createGain();
+      o.type=type; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+      o.start(); o.stop(ctx.currentTime + dur);
+    }catch(e){}
+  }
+  function speakNumber(n){
+    if(!els.ttsToggle.checked) return;
+    try{
+      const u=new SpeechSynthesisUtterance(String(n));
+      u.lang='it-IT'; u.rate=1.0; u.pitch=1.0;
+      window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  /* Focus mode */
+  function enterFocus(){
+    document.body.classList.add('focus');
+    $('revealBtn').classList.remove('hidden');
+    window.scrollTo({top:0, behavior:'instant'});
+  }
+  function exitFocus(){
+    document.body.classList.remove('focus');
+    $('revealBtn').classList.add('hidden');
+  }
+
+  /* Flow */
+  function resetUI(){
+    setPhase('pronto'); setMainLabel('—'); setTimeLeft(0);
+    setBg('#0a0f16'); els.setInfo.textContent='Set —'; app.lastSpoken=-1;
+  }
+  function readConfig(){
+    const mode=els.mode.value;
+    const work=Math.max(1, Number(els.workSeconds.value||0))*1000;
+    const rest=Math.max(0, Number(els.restSeconds.value||0))*1000;
+    const sets=clamp(int(els.sets.value,1),1,50);
+    const interval=Math.max(0.1, Number(els.intervalSeconds.value||0.1))*1000;
+    const delay=Math.max(0, Number(els.startDelay.value||0))*1000;
+    const colors=(mode==='color')?getSelectedColors():[];
+    const numbers=(mode==='number')?clamp(int(els.numberCount.value,5),1,20):0;
+    return {mode,work,rest,sets,interval,delay,colors,numbers};
+  }
+
+  function start(){
+    if(app.running) return;
+    const cfg=readConfig();
+    app={...app,
+      running:true, paused:false, phase:(cfg.delay>0?'countdown':'work'),
+      mode:cfg.mode, setIndex:0, totalSets:cfg.sets,
+      workMs:cfg.work, restMs:cfg.rest, intervalMs:cfg.interval, countdownMs:cfg.delay,
+      colors:cfg.colors.slice(), numbers:cfg.numbers, currentIdx:-1,
+      startTs:performance.now()
+    };
+    app.phaseEndTs=app.startTs+(app.countdownMs>0?app.countdownMs:app.workMs);
+    app.nextSignalTs=(app.countdownMs>0?0:app.startTs);
+
+    setSetInfo(); setPhase(app.phase); setMainLabel(app.phase==='countdown'?'PARTENZA':'VAI!');
+    setTimeLeft(app.countdownMs>0?app.countdownMs:app.workMs);
+    setBg('#0a0f16');
+
+    els.startBtn.disabled=true; els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; els.stopBtn.disabled=false;
+
+    enterFocus();
+    beep(660,0.12,'triangle');
+    app.rafId=requestAnimationFrame(loop);
+  }
+
+  function pause(){
+    if(!app.running || app.paused) return;
+    app.paused=true; app.pauseTs=performance.now();
+    cancelAnimationFrame(app.rafId); setMainLabel('PAUSA');
+  }
+  function resume(){
+    if(!app.running || !app.paused) return;
+    const now=performance.now(); const pausedDur=now-app.pauseTs;
+    app.phaseEndTs+=pausedDur; if(app.nextSignalTs) app.nextSignalTs+=pausedDur;
+    app.paused=false; app.rafId=requestAnimationFrame(loop);
+  }
+  function stop(){
+    app.running=false; app.paused=false; cancelAnimationFrame(app.rafId);
+    els.startBtn.disabled=false; els.pauseBtn.disabled=true; els.resumeBtn.disabled=true; els.stopBtn.disabled=true;
+    exitFocus(); resetUI();
+  }
+  function nextPhase(){
+    const now=performance.now();
+    if(app.phase==='countdown'){
+      setPhase('work'); setMainLabel('VAI!');
+      app.startTs=now; app.phaseEndTs=now+app.workMs; app.nextSignalTs=now; beep(880,0.12,'square'); return;
+    }
+    if(app.phase==='work'){
+      if(app.restMs>0){
+        setPhase('rest'); setMainLabel('RECUPERO'); setBg('#0a0f16');
+        app.startTs=now; app.phaseEndTs=now+app.restMs; app.nextSignalTs=0; beep(520,0.12,'sine');
+      } else {
+        if(app.setIndex+1>=app.totalSets) return finish();
+        app.setIndex++; setSetInfo(); setPhase('work'); setMainLabel('VAI!');
+        app.startTs=now; app.phaseEndTs=now+app.workMs; app.nextSignalTs=now; beep(880,0.12,'square');
+      }
+      return;
+    }
+    if(app.phase==='rest'){
+      if(app.setIndex+1>=app.totalSets) return finish();
+      app.setIndex++; setSetInfo(); setPhase('work'); setMainLabel('VAI!');
+      app.startTs=now; app.phaseEndTs=now+app.workMs; app.nextSignalTs=now; beep(880,0.12,'square');
+    }
+  }
+  function finish(){
+    setPhase('fine'); setMainLabel('FINE ✅'); setBg('#0a0f16'); setTimeLeft(0);
+    beep(440,0.1,'sine'); setTimeout(()=>beep(660,0.1,'sine'),120); setTimeout(()=>beep(880,0.1,'sine'),240);
+    app.running=false; cancelAnimationFrame(app.rafId);
+    els.startBtn.disabled=false; els.pauseBtn.disabled=true; els.resumeBtn.disabled=true; els.stopBtn.disabled=true;
+    exitFocus();
+  }
+
+  function loop(){
+    if(!app.running) return;
+    const now=performance.now();
+    if(app.paused){ app.rafId=requestAnimationFrame(loop); return; }
+
+    const msLeft=Math.max(0, app.phaseEndTs-now);
+    setTimeLeft(msLeft);
+
+    if(app.phase==='work' && now>=app.nextSignalTs){
+      if(app.mode==='color'){
+        const idx=chooseNextIndex(app.colors.length);
+        const c=app.colors[idx]; setBg(c); setMainLabel(`#${idx+1}`); app.lastSpoken=-1;
+      } else {
+        const idx=chooseNextIndex(app.numbers);
+        const shown=idx+1; setBg('#0a0f16'); setMainLabel(String(shown));
+        if(shown!==app.lastSpoken){ speakNumber(shown); app.lastSpoken=shown; }
+      }
+      beep(1200,0.05,'square'); setTimeout(()=>beep(900,0.05,'square'),60);
+      app.nextSignalTs = now + app.intervalMs;
+    }
+
+    if(msLeft<=0) nextPhase();
+    app.rafId=requestAnimationFrame(loop);
+  }
+
+  /* Utils */
+  function chooseNextIndex(pool){ if(pool<=1) return 0; let idx; do{ idx=Math.floor(Math.random()*pool); } while(idx===app.currentIdx); app.currentIdx=idx; return idx; }
+
+  /* Events */
+  els.startBtn.addEventListener('click', start, {passive:true});
+  els.pauseBtn.addEventListener('click', ()=>{ pause(); els.pauseBtn.disabled=true; els.resumeBtn.disabled=false; }, {passive:true});
+  els.resumeBtn.addEventListener('click', ()=>{ resume(); els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; }, {passive:true});
+  els.stopBtn.addEventListener('click', stop, {passive:true});
+  els.fsBtn.addEventListener('click', async ()=>{ try{ if(!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); }catch(e){} }, {passive:true});
+
+  els.colorCount.addEventListener('change', ()=>buildColorInputs(clamp(int(els.colorCount.value,5),1,12)), {passive:true});
+  els.colorInputs.addEventListener('input', renderLegend, {passive:true});
+  els.numberCount.addEventListener('change', renderLegend, {passive:true});
+
+  els.mode.addEventListener('change', ()=>{
+    app.mode=els.mode.value;
+    const isColor=app.mode==='color';
+    els.colorBlock.classList.toggle('hidden',!isColor);
+    els.numberBlock.classList.toggle('hidden',isColor);
+    renderLegend();
+  }, {passive:true});
+
+  // Tap grande = pausa/riprendi
+  els.hitArea.addEventListener('click', ()=>{
+    if(!app.running){ start(); return; }
+    if(!app.paused){ pause(); } else { resume(); }
+  }, {passive:true});
+
+  // Riapri controlli
+  $('revealBtn').addEventListener('click', exitFocus, {passive:true});
+
+  // Scorciatoie (desktop)
+  window.addEventListener('keydown', (e)=>{
+    if(e.code==='Space'){
+      e.preventDefault();
+      if(!app.running) start();
+      else if(!app.paused){ pause(); els.pauseBtn.disabled=true; els.resumeBtn.disabled=false; }
+      else { resume(); els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; }
+    }
+    if(e.key?.toLowerCase()==='f'){ els.fsBtn.click(); }
+  });
+
+  // Init
+  buildColorInputs(int(els.colorCount.value,5));
+  renderLegend();
+  resetUI();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+
+</body>
+</html>
