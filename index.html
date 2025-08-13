@@ -591,9 +591,12 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    // Usa la stessa versione della costante VERSION in sw.js
+    navigator.serviceWorker.register('./sw.js?v=2').catch(()=>{});
   });
 }
 </script>
 </body>
 </html>
+
+
