@@ -2,8 +2,8 @@
 <html lang="it">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Cone Trainer — UX Boost</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cone Trainer — iPhone UX</title>
 
 <!-- PWA / iPhone full screen -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -13,310 +13,340 @@
 
 <style>
   :root{
-    --bg:#0b0f14; --panel:#111720; --muted:#8ea0b5; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
-    --neutral:#0a0f16; --radius:16px;
+    --bg:#0a0f16; --panel:#0f1622; --text:#e8eef6;
+    --muted:#9db0c8; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+    --radius:16px;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-  html, body{height:100%; overflow-x:hidden;}
+  html, body{height:100%; overflow:hidden;}
   body{
-    margin:0; background:var(--bg); color:#e8eef6;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
-    display:grid; grid-template-rows:auto 1fr; gap:10px;
+    margin:0; background:var(--bg); color:var(--text);
+    font-family: system-ui, -apple-system, "SF Pro", Inter, Roboto, Arial, sans-serif;
   }
 
-  header{
-    padding:10px 14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-    background:linear-gradient(180deg,#0f1622,#0b1018); border-bottom:1px solid #1b2433;
+  /* App = viewport intero: area contenuti + barra in basso */
+  .app{
+    height:100dvh; display:grid; grid-template-rows: 1fr auto;
   }
-  header h1{font-size:18px; margin:0; color:#cfe1ff}
-  .small{font-size:12px; color:#93a7c4}
 
-  .container{
-    display:grid; grid-template-columns:360px 1fr; gap:14px; padding:14px; min-height:0; max-width:100%;
+  /* ============ SETTINGS VIEW (senza scroll) ============ */
+  .settingsView{
+    padding: max(12px, env(safe-area-inset-top)) 14px 10px;
+    display:grid; align-content:start; gap:14px; background:var(--panel);
+    border-bottom:1px solid #1b2433;
   }
-  @media (max-width:900px){ .container{grid-template-columns:1fr; gap:10px; padding:10px} }
+  .heading{
+    font-size:18px; color:#cfe1ff; font-weight:700; letter-spacing:.01em;
+  }
+  .sub{font-size:13px; color:var(--muted)}
 
-  .panel{
-    background:var(--panel); border:1px solid #1b2433; border-radius:var(--radius); padding:14px; overflow:auto;
-    box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03);
-  }
-  .panel.settings{ position:relative; z-index:5; overscroll-behavior-x:contain; touch-action:pan-y; }
-  .panel h2{font-size:15px; margin:0 0 10px; color:#cdd9ea}
+  .row{display:grid; gap:10px}
+  .label{font-size:13px; color:#c4d2e6}
 
-  .row{display:grid; grid-template-columns:1fr 180px; align-items:center; gap:10px; margin:10px 0; max-width:100%}
-  @media (max-width:900px){ .row{grid-template-columns:1fr; gap:6px} }
-  .row-full{display:grid; gap:10px; margin:10px 0}
-  label{font-size:13px; color:#c4d2e6}
-  input,select{
-    width:100%; padding:12px 14px; border-radius:12px; border:1px solid #2a374b; background:#0e1420; color:#eaf2ff; outline:none;
-    font-size:16px; max-width:100%;
+  .chips{display:flex; gap:8px; flex-wrap:wrap}
+  .chip{
+    padding:10px 12px; border-radius:12px; border:1px solid #273449; background:#0e1420; color:#d8e6fb;
+    font-size:15px; font-weight:700; cursor:pointer; touch-action:manipulation; user-select:none;
   }
-  input[type="number"]{appearance:textfield}
-  input[type="color"]{padding:0; height:44px}
-  .colors{display:grid; grid-template-columns:1fr 100px; gap:10px; align-items:center; max-width:100%}
-  .colors .idx{font-size:12px; color:#9fb0c8}
+  .chip.small{font-size:13px; padding:8px 10px}
+  .chip.selected{background:var(--accent); border-color:transparent; color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.25)}
 
-  .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px}
-  .btns button{flex:1}
-  button{
-    padding:12px 16px; border:none; border-radius:14px; color:white; background:#23334a; box-shadow:0 8px 20px rgba(0,0,0,.2);
-    font-size:16px; min-width:120px; touch-action:manipulation; pointer-events:auto; cursor:pointer;
-  }
-  button.primary{background:var(--accent)} button.success{background:var(--ok)} button.warn{background:var(--warn)} button.danger{background:var(--danger)} button.ghost{background:#1a2332}
-  button:disabled{opacity:.5; cursor:not-allowed}
-  .toggle{display:flex; align-items:center; gap:8px; font-size:14px; color:#cbd8ec}
-  .legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
-  .chip{display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; border:1px solid #2a374b; background:#0e1420; font-size:12px; color:#d2def0}
-  .dot{width:14px; height:14px; border-radius:50%; border:1px solid rgba(0,0,0,.25)}
+  .rowGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  @media (max-width:390px){ .rowGrid{grid-template-columns:1fr 1fr} }
+
+  .modeSwitch{display:flex; gap:8px}
+  .modeSwitch .chip{flex:1; text-align:center}
+
+  /* blocchi condizionali */
   .hidden{display:none}
 
-  /* DISPLAY */
-  .display{ position:relative; border-radius:var(--radius); overflow:hidden; border:1px solid #1b2433; background:var(--neutral); min-height:70dvh; z-index:1; }
-  .stage{ position:absolute; inset:0; display:grid; place-items:center; transition:background-color .18s ease }
-  .stage-inner{ text-align:center; padding:24px }
-  .phasebar{ position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0; display:flex; justify-content:center; padding:0 10px; pointer-events:none; }
+  /* Barra START (solo in settings) */
+  .startBar{
+    position:relative;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg, rgba(10,16,24,0), rgba(10,16,24,.65));
+    display:flex; gap:10px; align-items:center; justify-content:center;
+  }
+  .btn{
+    flex:1; max-width:420px;
+    padding:16px 18px; border:none; border-radius:14px; font-size:18px; font-weight:900;
+    color:#fff; background:var(--accent); cursor:pointer; touch-action:manipulation;
+    box-shadow:0 10px 28px rgba(59,130,246,.35);
+  }
+
+  /* ============ RUN VIEW (schermo pieno) ============ */
+  .runView{position:relative; background:#000; display:none}
+  .runView.on{display:block}
+
+  .stage{position:absolute; inset:0; display:grid; place-items:center; transition:background-color .18s ease}
+  .phaseBar{
+    position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0;
+    display:flex; justify-content:center; padding:0 10px; pointer-events:none;
+  }
   .phaseText{
-    pointer-events:auto; font-size:clamp(13px, 4.2vw, 18px); line-height:1.25; text-transform:uppercase; letter-spacing:.02em;
-    color:#dbe9ff; text-align:center; background:rgba(10,16,24,.60); padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.08);
-    max-width:96vw; white-space:normal; word-break:break-word;
+    pointer-events:auto; font-size:clamp(13px,4.2vw,18px); text-transform:uppercase; line-height:1.2;
+    color:#dbe9ff; background:rgba(10,16,24,.6);
+    padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.08); max-width:96vw; word-break:break-word;
   }
-  .setTag{ position:absolute; left:10px; top:calc(8px + env(safe-area-inset-top)); font-size:12px; color:#b0c4de; background:rgba(10,16,24,.55); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06) }
+  .setTag{
+    position:absolute; left:10px; top:calc(8px + env(safe-area-inset-top));
+    font-size:12px; color:#b0c4de; background:rgba(10,16,24,.55); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06)
+  }
 
+  .center{ text-align:center; padding:24px }
   .big{
-    font-weight:900; line-height:1; margin:.05em 0; font-size:clamp(72px, 28dvh, 240px);
-    letter-spacing:.02em; color:#fff; text-shadow: 0 0 8px rgba(0,0,0,.65), 0 0 24px rgba(0,0,0,.45),
-    -2px -2px 0 rgba(0,0,0,.85), 2px -2px 0 rgba(0,0,0,.85), -2px 2px 0 rgba(0,0,0,.85), 2px 2px 0 rgba(0,0,0,.85);
+    font-weight:900; line-height:1; margin:.05em 0;
+    font-size:clamp(72px, 28dvh, 240px);
+    color:#fff; letter-spacing:.02em;
+    text-shadow: 0 0 8px rgba(0,0,0,.65), 0 0 24px rgba(0,0,0,.45),
+      -2px -2px 0 rgba(0,0,0,.85), 2px -2px 0 rgba(0,0,0,.85),
+      -2px 2px 0 rgba(0,0,0,.85), 2px 2px 0 rgba(0,0,0,.85);
   }
-  .big.word{ font-size:clamp(36px, 12dvh, 96px); line-height:1.05; max-width:96vw; white-space:normal; word-break:break-word; text-align:center; padding:0 2vw; letter-spacing:.01em; }
-
+  .big.word{
+    font-size: clamp(36px, 12dvh, 96px);
+    line-height:1.05; max-width:96vw; word-break:break-word; padding:0 2vw;
+  }
   .timer{
-    font-size:clamp(14px,3.5vw,22px); color:#e9f3ff; opacity:.95; font-variant-numeric:tabular-nums;
-    background:rgba(10,16,24,.5); padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06); display:inline-block;
+    font-size:clamp(14px,3.5vw,22px); color:#e9f3ff; background:rgba(10,16,24,.45);
+    padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06); display:inline-block;
   }
-
-  .hint{ position:absolute; bottom:10px; right:10px; font-size:12px; color:#a8b9d0; background:rgba(10,16,24,.5); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06) }
-
-  /* FLASH bordo al segnale */
   .flash{ position:absolute; inset:0; pointer-events:none; box-shadow:0 0 0 0 rgba(255,255,255,0); }
-  .flash.on{ animation:edge 250ms ease-out; }
+  .flash.on{ animation:edge 240ms ease-out; }
   @keyframes edge{
     0%{ box-shadow: inset 0 0 0 6px rgba(255,255,255,.85), 0 0 20px rgba(255,255,255,.25); }
     100%{ box-shadow: inset 0 0 0 0 rgba(255,255,255,0), 0 0 0 rgba(255,255,255,0); }
   }
 
-  /* Focus Mode */
-  body.focus header .small{display:none}
-  body.focus .container{padding:0; gap:0; grid-template-columns:1fr}
-  body.focus .panel.settings{display:none}
-  body.focus .display{border-radius:0; border:none; height:100dvh; min-height:100dvh}
-  body.focus .hint{display:none}
-
-  /* Barra comandi in basso durante Focus */
-  .bottomBar{
-    position:fixed; left:0; right:0; bottom:0; z-index:60;
-    padding: max(8px, env(safe-area-inset-bottom)) 10px  calc(10px + env(safe-area-inset-bottom));
+  /* Barra comandi in basso durante RUN */
+  .runBar{
+    position:fixed; left:0; right:0; bottom:0; z-index:5;
+    padding: max(8px, env(safe-area-inset-bottom)) 10px calc(12px + env(safe-area-inset-bottom));
     display:flex; gap:10px; justify-content:center; align-items:center;
-    background:linear-gradient(180deg, transparent, rgba(10,16,24,.5));
-    pointer-events:none; /* i bottoni interni riattivano i pointer */
+    background:linear-gradient(180deg, rgba(10,16,24,0), rgba(10,16,24,.65));
   }
-  .bottomBar .bb-btn{
-    pointer-events:auto;
-    flex:1; max-width:280px;
-    padding:14px 16px; border:none; border-radius:14px; color:#fff; font-size:18px; font-weight:700;
-    touch-action:manipulation; cursor:pointer;
-    background:#23334a; box-shadow:0 8px 20px rgba(0,0,0,.25);
-  }
-  .bb-primary{ background:var(--accent); }
-  .bb-danger{ background:var(--danger); }
+  .bb{ flex:1; max-width:280px; padding:14px 16px; border:none; border-radius:14px; font-size:18px; font-weight:800; color:#fff; cursor:pointer; touch-action:manipulation; }
+  .bb.primary{ background:var(--accent) }
+  .bb.danger{ background:var(--danger) }
 
-  .reveal{
-    position:fixed; left:12px; bottom:calc(12px + env(safe-area-inset-bottom));
-    z-index:50; padding:12px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08);
-    background:rgba(12,18,28,.82); color:#eaf2ff; backdrop-filter: blur(8px) saturate(1.2);
-    font-size:15px; touch-action:manipulation;
-  }
+  /* Utility */
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(1px,1px,1px,1px)}
 </style>
 </head>
 <body>
-  <header>
-    <h1>Cone Trainer</h1>
-    <div class="small">UX migliorata: comandi in basso, wake lock, flash bordo, salvataggio automatico.</div>
-  </header>
+  <div class="app">
 
-  <div class="container">
-    <section class="panel settings">
-      <h2>Impostazioni</h2>
-
-      <div class="row">
-        <label for="mode">Modalità</label>
-        <select id="mode">
-          <option value="color">Colori</option>
-          <option value="number">Numeri</option>
-        </select>
+    <!-- SETTINGS (nessun header, niente scroll) -->
+    <section id="settings" class="settingsView">
+      <div>
+        <div class="heading">Imposta allenamento</div>
+        <div class="sub">Scegli parametri e premi Start. Nessuno scroll, tutto a portata di pollice.</div>
       </div>
 
       <div class="row">
-        <label for="workSeconds">LAVORO (secondi)</label>
-        <input id="workSeconds" type="number" min="5" value="30" />
-      </div>
-
-      <div class="row">
-        <label for="restSeconds">PAUSA (secondi)</label>
-        <input id="restSeconds" type="number" min="0" value="15" />
-      </div>
-
-      <div class="row">
-        <label for="sets">SET</label>
-        <input id="sets" type="number" min="1" value="5" />
-      </div>
-
-      <div class="row">
-        <label for="intervalSeconds">Intervallo segnali (s) in LAVORO</label>
-        <input id="intervalSeconds" type="number" min="0.3" step="0.1" value="2" />
-      </div>
-
-      <div class="row">
-        <label for="startDelay">Countdown iniziale (s)</label>
-        <input id="startDelay" type="number" min="0" value="3" />
-      </div>
-
-      <!-- Colori -->
-      <div id="colorBlock">
-        <div class="row">
-          <label for="colorCount">Quanti colori (coni)?</label>
-          <input id="colorCount" type="number" min="1" max="12" value="5" />
+        <div class="label">Modalità</div>
+        <div class="modeSwitch">
+          <button class="chip selected" data-group="mode" data-value="color">Colori</button>
+          <button class="chip" data-group="mode" data-value="number">Numeri</button>
         </div>
-        <div id="colorInputs" class="row-full"></div>
       </div>
 
-      <!-- Numeri -->
-      <div id="numberBlock" class="hidden">
+      <div class="rowGrid">
         <div class="row">
-          <label for="numberCount">Quanti numeri (coni)?</label>
-          <input id="numberCount" type="number" min="1" max="20" value="5" />
+          <div class="label">Lavoro (s)</div>
+          <div class="chips" id="workChips">
+            <button class="chip selected" data-group="work" data-value="30">30</button>
+            <button class="chip" data-group="work" data-value="20">20</button>
+            <button class="chip" data-group="work" data-value="45">45</button>
+            <button class="chip" data-group="work" data-value="60">60</button>
+          </div>
         </div>
-        <div class="small">Metti i coni in ordine 1..N. Il display mostrerà il numero da raggiungere.</div>
+        <div class="row">
+          <div class="label">Pausa (s)</div>
+          <div class="chips" id="restChips">
+            <button class="chip" data-group="rest" data-value="0">0</button>
+            <button class="chip selected" data-group="rest" data-value="15">15</button>
+            <button class="chip" data-group="rest" data-value="20">20</button>
+            <button class="chip" data-group="rest" data-value="30">30</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rowGrid">
+        <div class="row">
+          <div class="label">Set</div>
+          <div class="chips">
+            <button class="chip" data-group="sets" data-value="3">3</button>
+            <button class="chip selected" data-group="sets" data-value="5">5</button>
+            <button class="chip" data-group="sets" data-value="8">8</button>
+            <button class="chip" data-group="sets" data-value="10">10</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">Intervallo segnali (s)</div>
+          <div class="chips">
+            <button class="chip" data-group="interval" data-value="1">1.0</button>
+            <button class="chip selected" data-group="interval" data-value="2">2.0</button>
+            <button class="chip" data-group="interval" data-value="3">3.0</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="rowGrid">
+        <div class="row">
+          <div class="label">Countdown</div>
+          <div class="chips">
+            <button class="chip" data-group="countdown" data-value="0">Off</button>
+            <button class="chip selected" data-group="countdown" data-value="3">3</button>
+            <button class="chip" data-group="countdown" data-value="5">5</button>
+          </div>
+        </div>
+
+        <div class="row" id="colorCountRow">
+          <div class="label">Quanti coni</div>
+          <div class="chips">
+            <button class="chip" data-group="count" data-value="3">3</button>
+            <button class="chip selected" data-group="count" data-value="5">5</button>
+            <button class="chip" data-group="count" data-value="6">6</button>
+          </div>
+        </div>
+        <div class="row hidden" id="numberCountRow">
+          <div class="label">Quanti numeri</div>
+          <div class="chips">
+            <button class="chip" data-group="count" data-value="3">3</button>
+            <button class="chip selected" data-group="count" data-value="5">5</button>
+            <button class="chip" data-group="count" data-value="8">8</button>
+          </div>
+        </div>
       </div>
 
       <div class="row">
-        <label class="toggle"><input id="beepToggle" type="checkbox" checked /> Suono al cambio e cambio fase</label>
+        <div class="label">Opzioni</div>
+        <div class="chips">
+          <button class="chip small selected" data-group="beep" data-value="on">Suono ON</button>
+          <button class="chip small" data-group="beep" data-value="off">Suono OFF</button>
+          <button class="chip small" data-group="tts" data-value="on">Voce ON</button>
+          <button class="chip small selected" data-group="tts" data-value="off">Voce OFF</button>
+        </div>
       </div>
-      <div class="row">
-        <label class="toggle"><input id="ttsToggle" type="checkbox" /> Annuncia numero a voce (beta)</label>
-      </div>
-      <div class="row">
-        <label class="toggle"><input id="wakelockToggle" type="checkbox" checked /> Mantieni schermo attivo</label>
-      </div>
-
-      <div class="btns">
-        <button id="startBtn" class="primary">Avvia</button>
-        <button id="pauseBtn" class="warn" disabled>Pausa</button>
-        <button id="resumeBtn" class="success" disabled>Riprendi</button>
-        <button id="stopBtn" class="danger" disabled>Stop</button>
-        <button id="fsBtn" class="ghost">Schermo intero</button>
-      </div>
-
-      <div class="legend" id="legend"></div>
     </section>
 
-    <section class="display panel" id="displayPanel">
+    <!-- START BUTTON (settings) -->
+    <div class="startBar" id="startBar">
+      <button id="startBtn" class="btn">START</button>
+    </div>
+
+    <!-- RUN VIEW -->
+    <section id="run" class="runView">
       <div class="stage" id="stage">
         <div class="flash" id="flash"></div>
-
         <div class="setTag" id="setInfo">Set —</div>
-        <div class="phasebar"><div class="phaseText" id="phaseLabel">PRONTO</div></div>
+        <div class="phaseBar"><div class="phaseText" id="phaseLabel">PRONTO</div></div>
 
-        <div class="stage-inner" id="hitArea">
+        <div class="center" id="hitArea">
           <div class="big" id="mainLabel">—</div>
           <div class="timer"><span id="timeLeft">0.0</span> s</div>
         </div>
       </div>
+
+      <div class="runBar">
+        <button id="bbToggle" class="bb primary">Pausa</button>
+        <button id="bbStop" class="bb danger" title="Tieni premuto per fermare">Stop</button>
+      </div>
     </section>
-  </div>
 
-  <!-- Barra comandi in Focus -->
-  <div class="bottomBar hidden" id="bottomBar">
-    <button class="bb-btn bb-primary" id="bbToggle">Pausa</button>
-    <button class="bb-btn bb-danger" id="bbStop" title="Tieni premuto per fermare">Stop</button>
   </div>
-
-  <button id="revealBtn" class="reveal hidden">Mostra controlli</button>
 
 <script>
 (() => {
-  const $ = id => document.getElementById(id);
+  const $ = (id)=>document.getElementById(id);
+  const qs = (sel,root=document)=>root.querySelector(sel);
+  const qsa = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
+
   const els = {
-    mode:$('mode'), workSeconds:$('workSeconds'), restSeconds:$('restSeconds'), sets:$('sets'),
-    intervalSeconds:$('intervalSeconds'), startDelay:$('startDelay'),
-    colorBlock:$('colorBlock'), colorCount:$('colorCount'), colorInputs:$('colorInputs'),
-    numberBlock:$('numberBlock'), numberCount:$('numberCount'), legend:$('legend'),
-    startBtn:$('startBtn'), pauseBtn:$('pauseBtn'), resumeBtn:$('resumeBtn'), stopBtn:$('stopBtn'), fsBtn:$('fsBtn'),
-    stage:$('stage'), phaseLabel:$('phaseLabel'), mainLabel:$('mainLabel'), timeLeft:$('timeLeft'), setInfo:$('setInfo'),
-    beepToggle:$('beepToggle'), ttsToggle:$('ttsToggle'), wakelockToggle:$('wakelockToggle'),
-    revealBtn:$('revealBtn'), hitArea:$('hitArea'), flash:$('flash'),
-    bottomBar:$('bottomBar'), bbToggle:$('bbToggle'), bbStop:$('bbStop')
+    // settings
+    settings: $('settings'), startBar: $('startBar'), startBtn: $('startBtn'),
+    colorCountRow: $('colorCountRow'), numberCountRow: $('numberCountRow'),
+    // run
+    run: $('run'), stage: $('stage'), flash: $('flash'),
+    setInfo: $('setInfo'), phaseLabel: $('phaseLabel'), mainLabel: $('mainLabel'), timeLeft: $('timeLeft'),
+    bbToggle: $('bbToggle'), bbStop: $('bbStop'), hitArea: $('hitArea'),
   };
 
-  const defaultPalette = ['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ff9f0a','#32ade6','#ff2d55','#5ac8fa','#ffdb4d','#30d158','#bf5af2'];
+  const defaultPalette = ['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ff9f0a'];
 
   let app = {
-    running:false, paused:false, phase:'idle', mode:'color',
-    setIndex:0, totalSets:0, workMs:0, restMs:0, intervalMs:0, countdownMs:0,
-    colors:[], numbers:0, currentIdx:-1, startTs:0, phaseEndTs:0, nextSignalTs:0, pauseTs:0,
-    rafId:null, audioCtx:null, lastSpoken:-1, wakeLock:null
+    running:false, paused:false, phase:'idle',
+    mode:'color', workMs:30000, restMs:15000, sets:5, intervalMs:2000, countdownMs:3000,
+    count:5, colors:defaultPalette.slice(0,5), numbers:5,
+    currentIdx:-1, setIndex:0, totalSets:5,
+    startTs:0, phaseEndTs:0, nextSignalTs:0, pauseTs:0,
+    rafId:null, audioCtx:null, lastSpoken:-1,
+    beep:true, tts:false
   };
 
-  /* ---------- Build / Legend ---------- */
-  function buildColorInputs(n){
-    els.colorInputs.innerHTML='';
-    for(let i=0;i<n;i++){
-      const wrap=document.createElement('div'); wrap.className='colors';
-      const label=document.createElement('div'); label.className='idx'; label.textContent=`Colore ${i+1}`;
-      const input=document.createElement('input'); input.type='color'; input.value=defaultPalette[i%defaultPalette.length]; input.id=`color_${i}`;
-      wrap.append(label,input); els.colorInputs.appendChild(wrap);
-    }
-    renderLegend();
+  /* =============== UI: Chips =============== */
+  function selectInGroup(group, value){
+    qsa(`.chip[data-group="${group}"]`).forEach(b=>{
+      b.classList.toggle('selected', b.dataset.value===String(value));
+    });
   }
-  function getSelectedColors(){
-    const n = clamp(int(els.colorCount.value,5),1,12);
-    const arr=[]; for(let i=0;i<n;i++){ arr.push((document.getElementById(`color_${i}`)?.value)||defaultPalette[i%defaultPalette.length]); }
-    return arr;
+  function readSettings(){
+    const mode = qs('.chip[data-group="mode"].selected').dataset.value; // color|number
+    const work = Number(qs('.chip[data-group="work"].selected').dataset.value)*1000;
+    const rest = Number(qs('.chip[data-group="rest"].selected').dataset.value)*1000;
+    const sets = Number(qs('.chip[data-group="sets"].selected').dataset.value);
+    const interval = Number(qs('.chip[data-group="interval"].selected').dataset.value)*1000;
+    const countdown = Number(qs('.chip[data-group="countdown"].selected').dataset.value)*1000;
+    const count = Number(qs('.chip[data-group="count"].selected').dataset.value);
+    const beep = qs('.chip[data-group="beep"].selected').dataset.value==='on';
+    const tts  = qs('.chip[data-group="tts"].selected').dataset.value==='on';
+
+    return {mode, work, rest, sets, interval, countdown, count, beep, tts};
   }
-  function renderLegend(){
-    els.legend.innerHTML='';
-    if(app.mode==='color'){
-      const colors=getSelectedColors();
-      colors.forEach((c,i)=>{
-        const chip=document.createElement('div'); chip.className='chip';
-        const dot=document.createElement('div'); dot.className='dot'; dot.style.background=c;
-        const txt=document.createElement('span'); txt.textContent=`#${i+1}`;
-        chip.append(dot,txt); els.legend.appendChild(chip);
-      });
-    } else {
-      const n=clamp(int(els.numberCount.value,5),1,20);
-      for(let i=1;i<=n;i++){ const chip=document.createElement('div'); chip.className='chip'; chip.textContent=`N° ${i}`; els.legend.appendChild(chip); }
-    }
+  function bindChips(){
+    qsa('.chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const group = btn.dataset.group;
+        // single-select groups
+        const single = ['mode','work','rest','sets','interval','countdown','count','beep','tts'];
+        if(single.includes(group)){
+          qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.remove('selected'));
+          btn.classList.add('selected');
+        }
+        // toggle rows Color/Number
+        if(group==='mode'){
+          const mode = btn.dataset.value;
+          els.colorCountRow.classList.toggle('hidden', mode!=='color');
+          els.numberCountRow.classList.toggle('hidden', mode!=='number');
+          // keep current count selection (use first selected in visible row)
+          const visibleRow = mode==='color' ? els.colorCountRow : els.numberCountRow;
+          const sel = qs('.chip.selected', visibleRow) || qs('.chip', visibleRow);
+          const val = sel.dataset.value;
+          // sync "count" group globally
+          qsa('.chip[data-group="count"]').forEach(c=>c.classList.toggle('selected', c.dataset.value===val));
+        }
+      }, {passive:true});
+    });
   }
 
-  /* ---------- Helpers ---------- */
-  function int(v,d=0){ const n=parseInt(v,10); return isNaN(n)?d:n; }
-  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-  function fmtSec(ms){ return Math.ceil(ms/100)/10; }
+  /* =============== Helpers =============== */
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const fmtSec=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
   function setBg(c){ els.stage.style.background=c; }
-  function setPhase(p){ app.phase=p; els.phaseLabel.textContent=p.toUpperCase(); }
+  function setPhase(p){ app.phase=p; els.phaseLabel.textContent = p.toUpperCase(); }
   function setMainLabel(t){
-    const str = String(t); const isNumeric = /^#?\d+$/.test(str);
-    els.mainLabel.classList.toggle('word', !isNumeric);
-    els.mainLabel.textContent = str;
+    const s=String(t); const isNum = /^#?\d+$/.test(s);
+    els.mainLabel.classList.toggle('word', !isNum);
+    els.mainLabel.textContent=s;
   }
-  function setTimeLeft(ms){ els.timeLeft.textContent=fmtSec(ms).toFixed(1); }
-  function setSetInfo(){ els.setInfo.textContent=`Set ${app.setIndex+1} di ${app.totalSets}`; }
-  function chooseNextIndex(pool){ if(pool<=1) return 0; let idx; do{ idx=Math.floor(Math.random()*pool); } while(idx===app.currentIdx); app.currentIdx=idx; return idx; }
+  function setTimeLeft(ms){ els.timeLeft.textContent=fmtSec(ms); }
+  function setSetInfo(){ els.setInfo.textContent = `Set ${app.setIndex+1} di ${app.totalSets}`; }
+  function chooseNextIndex(pool){ if(pool<=1) return 0; let i; do{i=Math.floor(Math.random()*pool);}while(i===app.currentIdx); return (app.currentIdx=i); }
   function flashEdge(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
 
-  /* ---------- Audio / Voice ---------- */
+  /* =============== Audio / Voce =============== */
   function beep(freq=880, dur=0.08, type='sine'){
-    if(!els.beepToggle.checked) return;
+    if(!app.beep) return;
     try{
       if(!app.audioCtx){ app.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
       const ctx=app.audioCtx, o=ctx.createOscillator(), g=ctx.createGain();
@@ -328,7 +358,7 @@
     }catch(e){}
   }
   function speakNumber(n){
-    if(!els.ttsToggle.checked) return;
+    if(!app.tts) return;
     try{
       const u=new SpeechSynthesisUtterance(String(n));
       u.lang='it-IT'; u.rate=1.0; u.pitch=1.0;
@@ -336,118 +366,49 @@
     }catch(e){}
   }
 
-  /* ---------- Wake Lock ---------- */
-  async function enableWakeLock(){
-    if(!els.wakelockToggle.checked) return;
-    try{
-      if('wakeLock' in navigator){
-        app.wakeLock = await navigator.wakeLock.request('screen');
-        app.wakeLock.addEventListener?.('release', ()=>{ /* optional */ });
-      }
-    }catch(e){ /* ignore */ }
+  /* =============== Flow =============== */
+  function enterRun(){
+    // hide settings, show run
+    $('settings').style.display='none';
+    $('startBar').style.display='none';
+    els.run.classList.add('on');
   }
-  async function disableWakeLock(){
-    try{ await app.wakeLock?.release(); }catch(e){}
-    app.wakeLock = null;
+  function exitRun(){
+    els.run.classList.remove('on');
+    $('settings').style.display='grid';
+    $('startBar').style.display='flex';
   }
-  document.addEventListener('visibilitychange', ()=>{ // ri-acquisisci se torni in app
-    if(document.visibilityState==='visible' && app.running) enableWakeLock();
-  });
-
-  /* ---------- Focus mode ---------- */
-  function enterFocus(){
-    document.body.classList.add('focus');
-    els.bottomBar.classList.remove('hidden');
-    els.revealBtn.classList.remove('hidden');
-    window.scrollTo({top:0, behavior:'instant'});
-    enableWakeLock();
-  }
-  function exitFocus(){
-    document.body.classList.remove('focus');
-    els.bottomBar.classList.add('hidden');
-    els.revealBtn.classList.add('hidden');
-    disableWakeLock();
-  }
-
-  /* ---------- Save / Load settings ---------- */
-  const KEY='cone-trainer-settings-v1';
-  function saveSettings(){
-    const data={
-      mode:els.mode.value,
-      workSeconds:els.workSeconds.value, restSeconds:els.restSeconds.value, sets:els.sets.value,
-      intervalSeconds:els.intervalSeconds.value, startDelay:els.startDelay.value,
-      colorCount:els.colorCount.value, numberCount:els.numberCount.value,
-      beep:els.beepToggle.checked, tts:els.ttsToggle.checked, wakelock:els.wakelockToggle.checked,
-      colors:getSelectedColors()
-    };
-    localStorage.setItem(KEY, JSON.stringify(data));
-  }
-  function loadSettings(){
-    try{
-      const raw=localStorage.getItem(KEY); if(!raw) return;
-      const d=JSON.parse(raw);
-      els.mode.value=d.mode||'color';
-      els.workSeconds.value=d.workSeconds||30;
-      els.restSeconds.value=d.restSeconds||15;
-      els.sets.value=d.sets||5;
-      els.intervalSeconds.value=d.intervalSeconds||2;
-      els.startDelay.value=d.startDelay||3;
-      els.colorCount.value=d.colorCount||5;
-      els.numberCount.value=d.numberCount||5;
-      els.beepToggle.checked=!!d.beep;
-      els.ttsToggle.checked=!!d.tts;
-      els.wakelockToggle.checked = d.wakelock!==false;
-      // build colors
-      buildColorInputs(clamp(int(els.colorCount.value,5),1,12));
-      (d.colors||[]).forEach((c,i)=>{ const inp=document.getElementById(`color_${i}`); if(inp) inp.value=c; });
-      // mode blocks
-      const isColor=(els.mode.value==='color');
-      els.colorBlock.classList.toggle('hidden', !isColor);
-      els.numberBlock.classList.toggle('hidden', isColor);
-      renderLegend();
-    }catch(e){}
-  }
-
-  /* ---------- Flow ---------- */
   function resetUI(){
     setPhase('pronto'); setMainLabel('—'); setTimeLeft(0);
     setBg('#0a0f16'); els.setInfo.textContent='Set —'; app.lastSpoken=-1;
   }
-  function readConfig(){
-    const mode=els.mode.value;
-    const work=Math.max(1, Number(els.workSeconds.value||0))*1000;
-    const rest=Math.max(0, Number(els.restSeconds.value||0))*1000;
-    const sets=clamp(int(els.sets.value,1),1,50);
-    const interval=Math.max(0.1, Number(els.intervalSeconds.value||0.1))*1000;
-    const delay=Math.max(0, Number(els.startDelay.value||0))*1000;
-    const colors=(mode==='color')?getSelectedColors():[];
-    const numbers=(mode==='number')?clamp(int(els.numberCount.value,5),1,20):0;
-    return {mode,work,rest,sets,interval,delay,colors,numbers};
-  }
 
   function start(){
     if(app.running) return;
-    const cfg=readConfig();
-    app={...app,
-      running:true, paused:false, phase:(cfg.delay>0?'countdown':'work'),
+    const cfg = readSettings();
+
+    // prepare state
+    const count = cfg.count;
+    const colors = defaultPalette.slice(0, clamp(count,1,defaultPalette.length));
+    app = {...app,
+      running:true, paused:false, phase:(cfg.countdown>0?'countdown':'work'),
       mode:cfg.mode, setIndex:0, totalSets:cfg.sets,
-      workMs:cfg.work, restMs:cfg.rest, intervalMs:cfg.interval, countdownMs:cfg.delay,
-      colors:cfg.colors.slice(), numbers:cfg.numbers, currentIdx:-1,
+      workMs:cfg.work, restMs:cfg.rest, intervalMs:cfg.interval, countdownMs:cfg.countdown,
+      count:count, colors:colors, numbers:count, currentIdx:-1,
+      beep:cfg.beep, tts:cfg.tts,
       startTs:performance.now()
     };
-    app.phaseEndTs=app.startTs+(app.countdownMs>0?app.countdownMs:app.workMs);
-    app.nextSignalTs=(app.countdownMs>0?0:app.startTs);
+    app.phaseEndTs = app.startTs + (app.countdownMs>0?app.countdownMs:app.workMs);
+    app.nextSignalTs = (app.countdownMs>0?0:app.startTs);
 
     setSetInfo(); setPhase(app.phase); setMainLabel(app.phase==='countdown'?'PARTENZA':'VAI!');
     setTimeLeft(app.countdownMs>0?app.countdownMs:app.workMs);
     setBg('#0a0f16');
 
-    els.startBtn.disabled=true; els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; els.stopBtn.disabled=false;
     els.bbToggle.textContent='Pausa';
-
-    enterFocus();
+    enterRun();
     beep(660,0.12,'triangle');
-    app.rafId=requestAnimationFrame(loop);
+    app.rafId = requestAnimationFrame(loop);
   }
 
   function pause(){
@@ -458,16 +419,16 @@
   }
   function resume(){
     if(!app.running || !app.paused) return;
-    const now=performance.now(); const pausedDur=now-app.pauseTs;
-    app.phaseEndTs+=pausedDur; if(app.nextSignalTs) app.nextSignalTs+=pausedDur;
-    app.paused=false; app.rafId=requestAnimationFrame(loop);
-    els.bbToggle.textContent='Pausa';
+    const now=performance.now(); const paused = now - app.pauseTs;
+    app.phaseEndTs += paused; if(app.nextSignalTs) app.nextSignalTs += paused;
+    app.paused=false; els.bbToggle.textContent='Pausa';
+    app.rafId = requestAnimationFrame(loop);
   }
   function stop(){
     app.running=false; app.paused=false; cancelAnimationFrame(app.rafId);
-    els.startBtn.disabled=false; els.pauseBtn.disabled=true; els.resumeBtn.disabled=true; els.stopBtn.disabled=true;
-    exitFocus(); resetUI();
+    resetUI(); exitRun();
   }
+
   function nextPhase(){
     const now=performance.now();
     if(app.phase==='countdown'){
@@ -495,14 +456,14 @@
     setPhase('fine'); setMainLabel('FINE ✅'); setBg('#0a0f16'); setTimeLeft(0);
     beep(440,0.1,'sine'); setTimeout(()=>beep(660,0.1,'sine'),120); setTimeout(()=>beep(880,0.1,'sine'),240);
     app.running=false; cancelAnimationFrame(app.rafId);
-    els.startBtn.disabled=false; els.pauseBtn.disabled=true; els.resumeBtn.disabled=true; els.stopBtn.disabled=true;
-    exitFocus();
+    // torna ai settings dopo 1s
+    setTimeout(stop, 800);
   }
 
   function loop(){
     if(!app.running) return;
     const now=performance.now();
-    if(app.paused){ app.rafId=requestAnimationFrame(loop); return; }
+    if(app.paused){ app.rafId = requestAnimationFrame(loop); return; }
 
     const msLeft=Math.max(0, app.phaseEndTs-now);
     setTimeLeft(msLeft);
@@ -514,7 +475,7 @@
       } else {
         const idx=chooseNextIndex(app.numbers);
         const shown=idx+1; setBg('#0a0f16'); setMainLabel(String(shown));
-        if(shown!==app.lastSpoken){ speakNumber(shown); app.lastSpoken=shown; }
+        if(app.tts && shown!==app.lastSpoken){ speakNumber(shown); app.lastSpoken=shown; }
       }
       flashEdge();
       beep(1200,0.05,'square'); setTimeout(()=>beep(900,0.05,'square'),60);
@@ -522,81 +483,46 @@
     }
 
     if(msLeft<=0) nextPhase();
-    app.rafId=requestAnimationFrame(loop);
+    app.rafId = requestAnimationFrame(loop);
   }
 
-  /* ---------- Events ---------- */
-  function bindSaveOnChange(node){ node.addEventListener('change', saveSettings, {passive:true}); node.addEventListener('input', saveSettings, {passive:true}); }
-  [els.mode, els.workSeconds, els.restSeconds, els.sets, els.intervalSeconds, els.startDelay, els.colorCount, els.numberCount, els.beepToggle, els.ttsToggle, els.wakelockToggle].forEach(bindSaveOnChange);
+  /* =============== Events =============== */
+  bindChips();
 
+  // Start
   els.startBtn.addEventListener('click', start, {passive:true});
-  els.pauseBtn.addEventListener('click', ()=>{ pause(); els.pauseBtn.disabled=true; els.resumeBtn.disabled=false; }, {passive:true});
-  els.resumeBtn.addEventListener('click', ()=>{ resume(); els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; }, {passive:true});
-  els.stopBtn.addEventListener('click', stop, {passive:true});
-  els.fsBtn.addEventListener('click', async ()=>{ try{ if(!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); }catch(e){} }, {passive:true});
 
-  els.colorCount.addEventListener('change', ()=>buildColorInputs(clamp(int(els.colorCount.value,5),1,12)), {passive:true});
-  els.colorInputs.addEventListener('input', renderLegend, {passive:true});
-  els.numberCount.addEventListener('change', renderLegend, {passive:true});
+  // Run bar
+  els.bbToggle.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
 
-  els.mode.addEventListener('change', ()=>{
-    app.mode=els.mode.value;
-    const isColor=app.mode==='color';
-    els.colorBlock.classList.toggle('hidden',!isColor);
-    els.numberBlock.classList.toggle('hidden',isColor);
-    renderLegend();
-  }, {passive:true});
+  // Stop con pressione prolungata
+  let hold=null;
+  const startHold=()=>{ hold=setTimeout(stop,800); };
+  const endHold=()=>{ clearTimeout(hold); hold=null; };
+  els.bbStop.addEventListener('touchstart', startHold, {passive:true});
+  els.bbStop.addEventListener('mousedown', startHold);
+  ['touchend','touchcancel','mouseup','mouseleave'].forEach(ev=>els.bbStop.addEventListener(ev, endHold, {passive:true}));
 
-  // Tap grande = pausa/riprendi
-  els.hitArea.addEventListener('click', ()=>{
-    if(!app.running){ start(); return; }
-    if(!app.paused){ pause(); } else { resume(); }
-  }, {passive:true});
+  // Tap al centro = pausa/riprendi
+  els.hitArea.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
 
-  // Barra comandi in basso
-  els.bbToggle.addEventListener('click', ()=>{ if(!app.running){ start(); return; } if(app.paused){ resume(); } else { pause(); } }, {passive:true});
-
-  // Stop con pressione prolungata (800ms)
-  let stopPressId=null;
-  function startStopHold(){ stopPressId=setTimeout(()=>stop(),800); }
-  function cancelStopHold(){ clearTimeout(stopPressId); stopPressId=null; }
-  els.bbStop.addEventListener('touchstart', startStopHold, {passive:true});
-  els.bbStop.addEventListener('mousedown', startStopHold);
-  ['touchend','touchcancel','mouseup','mouseleave'].forEach(evt=>els.bbStop.addEventListener(evt, cancelStopHold, {passive:true}));
-
-  // Mostra controlli
-  els.revealBtn.addEventListener('click', exitFocus, {passive:true});
-
-  // Scorciatoie (desktop)
-  window.addEventListener('keydown', (e)=>{
-    if(e.code==='Space'){
-      e.preventDefault();
-      if(!app.running) start();
-      else if(!app.paused){ pause(); els.pauseBtn.disabled=true; els.resumeBtn.disabled=false; }
-      else { resume(); els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; }
-    }
-    if(e.key?.toLowerCase()==='f'){ els.fsBtn.click(); }
-  });
-
-  // Init
-  buildColorInputs(5);
-  loadSettings(); // ripristina eventuali preferenze salvate
-  renderLegend();
-  resetUI();
+  // Preselezione modalità sincronizza righe count
+  (function initModeRows(){
+    const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
+    els.colorCountRow.classList.toggle('hidden', modeSel!=='color');
+    els.numberCountRow.classList.toggle('hidden', modeSel!=='number');
+  })();
 
 })();
 </script>
 
-<!-- SW register -->
+<!-- SW register (se usi il service worker versione con cache) -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Usa la stessa versione della costante VERSION in sw.js
-    navigator.serviceWorker.register('./sw.js?v=2').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=3').catch(()=>{});
   });
 }
 </script>
 </body>
 </html>
-
-
