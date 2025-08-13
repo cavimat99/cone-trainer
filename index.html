@@ -1,27 +1,23 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>Cone Trainer — UX Boost</title>
 
-<!-- iPhone: avvio a tutto schermo -->
+<!-- PWA / iPhone full screen -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#0a0f16" />
 <link rel="manifest" href="manifest.webmanifest" />
 
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>Cone Trainer — Mobile Touch/Scroll Fix</title>
 <style>
   :root{
     --bg:#0b0f14; --panel:#111720; --muted:#8ea0b5; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
     --neutral:#0a0f16; --radius:16px;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
-  html, body{
-    height:100%;
-    /* 🔒 niente scroll laterale */
-    overflow-x:hidden;
-  }
+  html, body{height:100%; overflow-x:hidden;}
   body{
     margin:0; background:var(--bg); color:#e8eef6;
     font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
@@ -35,11 +31,8 @@
   header h1{font-size:18px; margin:0; color:#cfe1ff}
   .small{font-size:12px; color:#93a7c4}
 
-  /* --- LAYOUT --- */
   .container{
-    display:grid; grid-template-columns:360px 1fr; gap:14px; padding:14px; min-height:0;
-    max-width:100%;
-    overflow-x:hidden; /* extra safety */
+    display:grid; grid-template-columns:360px 1fr; gap:14px; padding:14px; min-height:0; max-width:100%;
   }
   @media (max-width:900px){ .container{grid-template-columns:1fr; gap:10px; padding:10px} }
 
@@ -47,21 +40,16 @@
     background:var(--panel); border:1px solid #1b2433; border-radius:var(--radius); padding:14px; overflow:auto;
     box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.03);
   }
-
-  /* ✅ Settings sempre sopra al display, così i bottoni sono sempre tappabili */
-  .panel.settings{ position:relative; z-index:5; }
-
+  .panel.settings{ position:relative; z-index:5; overscroll-behavior-x:contain; touch-action:pan-y; }
   .panel h2{font-size:15px; margin:0 0 10px; color:#cdd9ea}
 
   .row{display:grid; grid-template-columns:1fr 180px; align-items:center; gap:10px; margin:10px 0; max-width:100%}
   @media (max-width:900px){ .row{grid-template-columns:1fr; gap:6px} }
-
   .row-full{display:grid; gap:10px; margin:10px 0}
   label{font-size:13px; color:#c4d2e6}
   input,select{
     width:100%; padding:12px 14px; border-radius:12px; border:1px solid #2a374b; background:#0e1420; color:#eaf2ff; outline:none;
-    font-size:16px;
-    max-width:100%;
+    font-size:16px; max-width:100%;
   }
   input[type="number"]{appearance:textfield}
   input[type="color"]{padding:0; height:44px}
@@ -72,11 +60,7 @@
   .btns button{flex:1}
   button{
     padding:12px 16px; border:none; border-radius:14px; color:white; background:#23334a; box-shadow:0 8px 20px rgba(0,0,0,.2);
-    font-size:16px; min-width:120px;
-    /* 🫰 iOS touch */
-    touch-action:manipulation;
-    pointer-events:auto;
-    cursor:pointer;
+    font-size:16px; min-width:120px; touch-action:manipulation; pointer-events:auto; cursor:pointer;
   }
   button.primary{background:var(--accent)} button.success{background:var(--ok)} button.warn{background:var(--warn)} button.danger{background:var(--danger)} button.ghost{background:#1a2332}
   button:disabled{opacity:.5; cursor:not-allowed}
@@ -86,93 +70,77 @@
   .dot{width:14px; height:14px; border-radius:50%; border:1px solid rgba(0,0,0,.25)}
   .hidden{display:none}
 
-  /* 🔒 la sezione Settings scorre solo in verticale (gesto orizzontale bloccato) */
-  .panel.settings{
-    overscroll-behavior-x:contain;
-    touch-action:pan-y;
-  }
-
-  /* --- DISPLAY --- */
-  .display{
-    position:relative; border-radius:var(--radius); overflow:hidden;
-    border:1px solid #1b2433; background:var(--neutral); min-height:70dvh;
-    z-index:1;
-  }
-  .stage{position:absolute; inset:0; display:grid; place-items:center; transition:background-color .18s ease}
-  .stage-inner{text-align:center; padding:24px}
-
-  /* Barra fase */
-  .phasebar{
-    position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0;
-    display:flex; align-items:center; justify-content:center; padding:0 10px; pointer-events:none;
-  }
+  /* DISPLAY */
+  .display{ position:relative; border-radius:var(--radius); overflow:hidden; border:1px solid #1b2433; background:var(--neutral); min-height:70dvh; z-index:1; }
+  .stage{ position:absolute; inset:0; display:grid; place-items:center; transition:background-color .18s ease }
+  .stage-inner{ text-align:center; padding:24px }
+  .phasebar{ position:absolute; top:calc(8px + env(safe-area-inset-top)); left:0; right:0; display:flex; justify-content:center; padding:0 10px; pointer-events:none; }
   .phaseText{
-    pointer-events:auto;
-    font-size:clamp(13px, 4.2vw, 18px);
-    line-height:1.25; text-transform:uppercase; letter-spacing:.02em;
-    color:#dbe9ff; text-align:center;
-    background:rgba(10,16,24,.60);
-    padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.08);
+    pointer-events:auto; font-size:clamp(13px, 4.2vw, 18px); line-height:1.25; text-transform:uppercase; letter-spacing:.02em;
+    color:#dbe9ff; text-align:center; background:rgba(10,16,24,.60); padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,.08);
     max-width:96vw; white-space:normal; word-break:break-word;
   }
-  .setTag{
-    position:absolute; left:10px; top:calc(8px + env(safe-area-inset-top));
-    font-size:12px; color:#b0c4de; background:rgba(10,16,24,.55); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06)
-  }
+  .setTag{ position:absolute; left:10px; top:calc(8px + env(safe-area-inset-top)); font-size:12px; color:#b0c4de; background:rgba(10,16,24,.55); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06) }
 
-  /* Numero enorme */
   .big{
-    font-weight:900; line-height:1; margin:.05em 0;
-    font-size:clamp(72px, 28dvh, 240px);
-    letter-spacing:.02em; color:#fff;
-    text-shadow:
-      0 0 8px rgba(0,0,0,.65),
-      0 0 24px rgba(0,0,0,.45),
-      -2px -2px 0 rgba(0,0,0,.85),
-      2px -2px 0 rgba(0,0,0,.85),
-      -2px 2px 0 rgba(0,0,0,.85),
-      2px 2px 0 rgba(0,0,0,.85);
+    font-weight:900; line-height:1; margin:.05em 0; font-size:clamp(72px, 28dvh, 240px);
+    letter-spacing:.02em; color:#fff; text-shadow: 0 0 8px rgba(0,0,0,.65), 0 0 24px rgba(0,0,0,.45),
+    -2px -2px 0 rgba(0,0,0,.85), 2px -2px 0 rgba(0,0,0,.85), -2px 2px 0 rgba(0,0,0,.85), 2px 2px 0 rgba(0,0,0,.85);
   }
-  /* Parole (PAUSA, RECUPERO, …) */
-  .big.word{
-    font-size: clamp(36px, 12dvh, 96px);
-    line-height: 1.05;
-    max-width: 96vw;
-    white-space: normal;
-    word-break: break-word;
-    text-align: center;
-    padding: 0 2vw;
-    letter-spacing: .01em;
-  }
+  .big.word{ font-size:clamp(36px, 12dvh, 96px); line-height:1.05; max-width:96vw; white-space:normal; word-break:break-word; text-align:center; padding:0 2vw; letter-spacing:.01em; }
 
   .timer{
     font-size:clamp(14px,3.5vw,22px); color:#e9f3ff; opacity:.95; font-variant-numeric:tabular-nums;
-    background:rgba(10,16,24,.5); padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06);
-    display:inline-block;
+    background:rgba(10,16,24,.5); padding:.4em .7em; border-radius:12px; border:1px solid rgba(255,255,255,.06); display:inline-block;
   }
 
-  .hint{position:absolute; bottom:10px; right:10px; font-size:12px; color:#a8b9d0; background:rgba(10,16,24,.5); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06)}
+  .hint{ position:absolute; bottom:10px; right:10px; font-size:12px; color:#a8b9d0; background:rgba(10,16,24,.5); padding:6px 8px; border-radius:10px; border:1px solid rgba(255,255,255,.06) }
 
-  /* FOCUS MODE */
+  /* FLASH bordo al segnale */
+  .flash{ position:absolute; inset:0; pointer-events:none; box-shadow:0 0 0 0 rgba(255,255,255,0); }
+  .flash.on{ animation:edge 250ms ease-out; }
+  @keyframes edge{
+    0%{ box-shadow: inset 0 0 0 6px rgba(255,255,255,.85), 0 0 20px rgba(255,255,255,.25); }
+    100%{ box-shadow: inset 0 0 0 0 rgba(255,255,255,0), 0 0 0 rgba(255,255,255,0); }
+  }
+
+  /* Focus Mode */
   body.focus header .small{display:none}
   body.focus .container{padding:0; gap:0; grid-template-columns:1fr}
   body.focus .panel.settings{display:none}
   body.focus .display{border-radius:0; border:none; height:100dvh; min-height:100dvh}
   body.focus .hint{display:none}
 
+  /* Barra comandi in basso durante Focus */
+  .bottomBar{
+    position:fixed; left:0; right:0; bottom:0; z-index:60;
+    padding: max(8px, env(safe-area-inset-bottom)) 10px  calc(10px + env(safe-area-inset-bottom));
+    display:flex; gap:10px; justify-content:center; align-items:center;
+    background:linear-gradient(180deg, transparent, rgba(10,16,24,.5));
+    pointer-events:none; /* i bottoni interni riattivano i pointer */
+  }
+  .bottomBar .bb-btn{
+    pointer-events:auto;
+    flex:1; max-width:280px;
+    padding:14px 16px; border:none; border-radius:14px; color:#fff; font-size:18px; font-weight:700;
+    touch-action:manipulation; cursor:pointer;
+    background:#23334a; box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  .bb-primary{ background:var(--accent); }
+  .bb-danger{ background:var(--danger); }
+
   .reveal{
     position:fixed; left:12px; bottom:calc(12px + env(safe-area-inset-bottom));
     z-index:50; padding:12px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.08);
     background:rgba(12,18,28,.82); color:#eaf2ff; backdrop-filter: blur(8px) saturate(1.2);
-    font-size:15px;
-    touch-action:manipulation;
+    font-size:15px; touch-action:manipulation;
   }
 </style>
 </head>
 <body>
   <header>
     <h1>Cone Trainer</h1>
-    <div class="small">Touch fix + scroll verticale. Tap/Spazio = Pausa/Riprendi.</div>
+    <div class="small">UX migliorata: comandi in basso, wake lock, flash bordo, salvataggio automatico.</div>
   </header>
 
   <div class="container">
@@ -236,12 +204,15 @@
       <div class="row">
         <label class="toggle"><input id="ttsToggle" type="checkbox" /> Annuncia numero a voce (beta)</label>
       </div>
+      <div class="row">
+        <label class="toggle"><input id="wakelockToggle" type="checkbox" checked /> Mantieni schermo attivo</label>
+      </div>
 
       <div class="btns">
         <button id="startBtn" class="primary">Avvia</button>
         <button id="pauseBtn" class="warn" disabled>Pausa</button>
         <button id="resumeBtn" class="success" disabled>Riprendi</button>
-        <button id="stopBtn" class="danger">Stop</button>
+        <button id="stopBtn" class="danger" disabled>Stop</button>
         <button id="fsBtn" class="ghost">Schermo intero</button>
       </div>
 
@@ -250,20 +221,23 @@
 
     <section class="display panel" id="displayPanel">
       <div class="stage" id="stage">
-        <div class="setTag" id="setInfo">Set —</div>
+        <div class="flash" id="flash"></div>
 
-        <div class="phasebar">
-          <div class="phaseText" id="phaseLabel">PRONTO</div>
-        </div>
+        <div class="setTag" id="setInfo">Set —</div>
+        <div class="phasebar"><div class="phaseText" id="phaseLabel">PRONTO</div></div>
 
         <div class="stage-inner" id="hitArea">
           <div class="big" id="mainLabel">—</div>
           <div class="timer"><span id="timeLeft">0.0</span> s</div>
         </div>
-
-        <div class="hint">Tap/Spazio = Pausa · F = Fullscreen</div>
       </div>
     </section>
+  </div>
+
+  <!-- Barra comandi in Focus -->
+  <div class="bottomBar hidden" id="bottomBar">
+    <button class="bb-btn bb-primary" id="bbToggle">Pausa</button>
+    <button class="bb-btn bb-danger" id="bbStop" title="Tieni premuto per fermare">Stop</button>
   </div>
 
   <button id="revealBtn" class="reveal hidden">Mostra controlli</button>
@@ -278,7 +252,9 @@
     numberBlock:$('numberBlock'), numberCount:$('numberCount'), legend:$('legend'),
     startBtn:$('startBtn'), pauseBtn:$('pauseBtn'), resumeBtn:$('resumeBtn'), stopBtn:$('stopBtn'), fsBtn:$('fsBtn'),
     stage:$('stage'), phaseLabel:$('phaseLabel'), mainLabel:$('mainLabel'), timeLeft:$('timeLeft'), setInfo:$('setInfo'),
-    beepToggle:$('beepToggle'), ttsToggle:$('ttsToggle'), revealBtn:$('revealBtn'), hitArea:$('hitArea')
+    beepToggle:$('beepToggle'), ttsToggle:$('ttsToggle'), wakelockToggle:$('wakelockToggle'),
+    revealBtn:$('revealBtn'), hitArea:$('hitArea'), flash:$('flash'),
+    bottomBar:$('bottomBar'), bbToggle:$('bbToggle'), bbStop:$('bbStop')
   };
 
   const defaultPalette = ['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ff9f0a','#32ade6','#ff2d55','#5ac8fa','#ffdb4d','#30d158','#bf5af2'];
@@ -287,10 +263,10 @@
     running:false, paused:false, phase:'idle', mode:'color',
     setIndex:0, totalSets:0, workMs:0, restMs:0, intervalMs:0, countdownMs:0,
     colors:[], numbers:0, currentIdx:-1, startTs:0, phaseEndTs:0, nextSignalTs:0, pauseTs:0,
-    rafId:null, audioCtx:null, lastSpoken:-1
+    rafId:null, audioCtx:null, lastSpoken:-1, wakeLock:null
   };
 
-  /* UI builders */
+  /* ---------- Build / Legend ---------- */
   function buildColorInputs(n){
     els.colorInputs.innerHTML='';
     for(let i=0;i<n;i++){
@@ -322,23 +298,23 @@
     }
   }
 
-  /* Helpers */
+  /* ---------- Helpers ---------- */
   function int(v,d=0){ const n=parseInt(v,10); return isNaN(n)?d:n; }
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
   function fmtSec(ms){ return Math.ceil(ms/100)/10; }
   function setBg(c){ els.stage.style.background=c; }
   function setPhase(p){ app.phase=p; els.phaseLabel.textContent=p.toUpperCase(); }
   function setMainLabel(t){
-    const str = String(t);
-    const isNumeric = /^#?\d+$/.test(str);
+    const str = String(t); const isNumeric = /^#?\d+$/.test(str);
     els.mainLabel.classList.toggle('word', !isNumeric);
     els.mainLabel.textContent = str;
   }
   function setTimeLeft(ms){ els.timeLeft.textContent=fmtSec(ms).toFixed(1); }
   function setSetInfo(){ els.setInfo.textContent=`Set ${app.setIndex+1} di ${app.totalSets}`; }
   function chooseNextIndex(pool){ if(pool<=1) return 0; let idx; do{ idx=Math.floor(Math.random()*pool); } while(idx===app.currentIdx); app.currentIdx=idx; return idx; }
+  function flashEdge(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
 
-  /* Audio / Voice */
+  /* ---------- Audio / Voice ---------- */
   function beep(freq=880, dur=0.08, type='sine'){
     if(!els.beepToggle.checked) return;
     try{
@@ -360,18 +336,79 @@
     }catch(e){}
   }
 
-  /* Focus mode */
+  /* ---------- Wake Lock ---------- */
+  async function enableWakeLock(){
+    if(!els.wakelockToggle.checked) return;
+    try{
+      if('wakeLock' in navigator){
+        app.wakeLock = await navigator.wakeLock.request('screen');
+        app.wakeLock.addEventListener?.('release', ()=>{ /* optional */ });
+      }
+    }catch(e){ /* ignore */ }
+  }
+  async function disableWakeLock(){
+    try{ await app.wakeLock?.release(); }catch(e){}
+    app.wakeLock = null;
+  }
+  document.addEventListener('visibilitychange', ()=>{ // ri-acquisisci se torni in app
+    if(document.visibilityState==='visible' && app.running) enableWakeLock();
+  });
+
+  /* ---------- Focus mode ---------- */
   function enterFocus(){
     document.body.classList.add('focus');
-    $('revealBtn').classList.remove('hidden');
+    els.bottomBar.classList.remove('hidden');
+    els.revealBtn.classList.remove('hidden');
     window.scrollTo({top:0, behavior:'instant'});
+    enableWakeLock();
   }
   function exitFocus(){
     document.body.classList.remove('focus');
-    $('revealBtn').classList.add('hidden');
+    els.bottomBar.classList.add('hidden');
+    els.revealBtn.classList.add('hidden');
+    disableWakeLock();
   }
 
-  /* Flow */
+  /* ---------- Save / Load settings ---------- */
+  const KEY='cone-trainer-settings-v1';
+  function saveSettings(){
+    const data={
+      mode:els.mode.value,
+      workSeconds:els.workSeconds.value, restSeconds:els.restSeconds.value, sets:els.sets.value,
+      intervalSeconds:els.intervalSeconds.value, startDelay:els.startDelay.value,
+      colorCount:els.colorCount.value, numberCount:els.numberCount.value,
+      beep:els.beepToggle.checked, tts:els.ttsToggle.checked, wakelock:els.wakelockToggle.checked,
+      colors:getSelectedColors()
+    };
+    localStorage.setItem(KEY, JSON.stringify(data));
+  }
+  function loadSettings(){
+    try{
+      const raw=localStorage.getItem(KEY); if(!raw) return;
+      const d=JSON.parse(raw);
+      els.mode.value=d.mode||'color';
+      els.workSeconds.value=d.workSeconds||30;
+      els.restSeconds.value=d.restSeconds||15;
+      els.sets.value=d.sets||5;
+      els.intervalSeconds.value=d.intervalSeconds||2;
+      els.startDelay.value=d.startDelay||3;
+      els.colorCount.value=d.colorCount||5;
+      els.numberCount.value=d.numberCount||5;
+      els.beepToggle.checked=!!d.beep;
+      els.ttsToggle.checked=!!d.tts;
+      els.wakelockToggle.checked = d.wakelock!==false;
+      // build colors
+      buildColorInputs(clamp(int(els.colorCount.value,5),1,12));
+      (d.colors||[]).forEach((c,i)=>{ const inp=document.getElementById(`color_${i}`); if(inp) inp.value=c; });
+      // mode blocks
+      const isColor=(els.mode.value==='color');
+      els.colorBlock.classList.toggle('hidden', !isColor);
+      els.numberBlock.classList.toggle('hidden', isColor);
+      renderLegend();
+    }catch(e){}
+  }
+
+  /* ---------- Flow ---------- */
   function resetUI(){
     setPhase('pronto'); setMainLabel('—'); setTimeLeft(0);
     setBg('#0a0f16'); els.setInfo.textContent='Set —'; app.lastSpoken=-1;
@@ -406,6 +443,7 @@
     setBg('#0a0f16');
 
     els.startBtn.disabled=true; els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; els.stopBtn.disabled=false;
+    els.bbToggle.textContent='Pausa';
 
     enterFocus();
     beep(660,0.12,'triangle');
@@ -416,12 +454,14 @@
     if(!app.running || app.paused) return;
     app.paused=true; app.pauseTs=performance.now();
     cancelAnimationFrame(app.rafId); setMainLabel('PAUSA');
+    els.bbToggle.textContent='Riprendi';
   }
   function resume(){
     if(!app.running || !app.paused) return;
     const now=performance.now(); const pausedDur=now-app.pauseTs;
     app.phaseEndTs+=pausedDur; if(app.nextSignalTs) app.nextSignalTs+=pausedDur;
     app.paused=false; app.rafId=requestAnimationFrame(loop);
+    els.bbToggle.textContent='Pausa';
   }
   function stop(){
     app.running=false; app.paused=false; cancelAnimationFrame(app.rafId);
@@ -476,6 +516,7 @@
         const shown=idx+1; setBg('#0a0f16'); setMainLabel(String(shown));
         if(shown!==app.lastSpoken){ speakNumber(shown); app.lastSpoken=shown; }
       }
+      flashEdge();
       beep(1200,0.05,'square'); setTimeout(()=>beep(900,0.05,'square'),60);
       app.nextSignalTs = now + app.intervalMs;
     }
@@ -484,10 +525,10 @@
     app.rafId=requestAnimationFrame(loop);
   }
 
-  /* Utils */
-  function chooseNextIndex(pool){ if(pool<=1) return 0; let idx; do{ idx=Math.floor(Math.random()*pool); } while(idx===app.currentIdx); app.currentIdx=idx; return idx; }
+  /* ---------- Events ---------- */
+  function bindSaveOnChange(node){ node.addEventListener('change', saveSettings, {passive:true}); node.addEventListener('input', saveSettings, {passive:true}); }
+  [els.mode, els.workSeconds, els.restSeconds, els.sets, els.intervalSeconds, els.startDelay, els.colorCount, els.numberCount, els.beepToggle, els.ttsToggle, els.wakelockToggle].forEach(bindSaveOnChange);
 
-  /* Events */
   els.startBtn.addEventListener('click', start, {passive:true});
   els.pauseBtn.addEventListener('click', ()=>{ pause(); els.pauseBtn.disabled=true; els.resumeBtn.disabled=false; }, {passive:true});
   els.resumeBtn.addEventListener('click', ()=>{ resume(); els.pauseBtn.disabled=false; els.resumeBtn.disabled=true; }, {passive:true});
@@ -512,8 +553,19 @@
     if(!app.paused){ pause(); } else { resume(); }
   }, {passive:true});
 
-  // Riapri controlli
-  $('revealBtn').addEventListener('click', exitFocus, {passive:true});
+  // Barra comandi in basso
+  els.bbToggle.addEventListener('click', ()=>{ if(!app.running){ start(); return; } if(app.paused){ resume(); } else { pause(); } }, {passive:true});
+
+  // Stop con pressione prolungata (800ms)
+  let stopPressId=null;
+  function startStopHold(){ stopPressId=setTimeout(()=>stop(),800); }
+  function cancelStopHold(){ clearTimeout(stopPressId); stopPressId=null; }
+  els.bbStop.addEventListener('touchstart', startStopHold, {passive:true});
+  els.bbStop.addEventListener('mousedown', startStopHold);
+  ['touchend','touchcancel','mouseup','mouseleave'].forEach(evt=>els.bbStop.addEventListener(evt, cancelStopHold, {passive:true}));
+
+  // Mostra controlli
+  els.revealBtn.addEventListener('click', exitFocus, {passive:true});
 
   // Scorciatoie (desktop)
   window.addEventListener('keydown', (e)=>{
@@ -527,12 +579,15 @@
   });
 
   // Init
-  buildColorInputs(int(els.colorCount.value,5));
+  buildColorInputs(5);
+  loadSettings(); // ripristina eventuali preferenze salvate
   renderLegend();
   resetUI();
+
 })();
 </script>
 
+<!-- SW register -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -540,6 +595,5 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-
 </body>
 </html>
