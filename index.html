@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Cone Trainer — iPhone UX v2</title>
+<title>Cone Trainer — iPhone UX v2 + Fix Riprendi</title>
 
 <!-- PWA / iPhone full screen -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -374,6 +374,39 @@
   function chooseNextIndex(pool){ if(pool<=1) return 0; let i; do{i=Math.floor(Math.random()*pool);}while(i===app.currentIdx); return (app.currentIdx=i); }
   function flashEdge(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
 
+  // 👉 NEW: ridisegna subito lo stato corrente quando riprendi (numero/colore o testo fase)
+  function renderCurrent(){
+    if(app.phase === 'work'){
+      if(app.mode === 'color'){
+        if(app.currentIdx >= 0){
+          const c = app.colors[app.currentIdx] || '#0a0f16';
+          setBg(c);
+          setMainLabel(`#${app.currentIdx+1}`);
+        } else {
+          setBg('#0a0f16');
+          setMainLabel('VAI!');
+        }
+      } else { // number
+        if(app.currentIdx >= 0){
+          setBg('#0a0f16');
+          setMainLabel(String(app.currentIdx+1));
+        } else {
+          setBg('#0a0f16');
+          setMainLabel('VAI!');
+        }
+      }
+    } else if(app.phase === 'rest'){
+      setBg('#0a0f16');
+      setMainLabel('RECUPERO');
+    } else if(app.phase === 'countdown'){
+      setBg('#0a0f16');
+      setMainLabel('PARTENZA');
+    } else if(app.phase === 'fine'){
+      setBg('#0a0f16');
+      setMainLabel('FINE ✅');
+    }
+  }
+
   /* ======= Audio ======= */
   function beep(freq=880, dur=0.08, type='sine'){
     if(!app.beep) return;
@@ -404,6 +437,7 @@
       workMs:cfg.work, restMs:cfg.rest, intervalMs:cfg.interval, countdownMs:cfg.countdown,
       count:cfg.count, numbers:cfg.count, beep:cfg.beep,
       colors: app.colors.slice(0, cfg.count),
+      currentIdx:-1,
       startTs:performance.now()
     };
     app.phaseEndTs = app.startTs + (app.countdownMs>0?app.countdownMs:app.workMs);
@@ -420,15 +454,21 @@
   function pause(){
     if(!app.running || app.paused) return;
     app.paused=true; app.pauseTs=performance.now();
-    cancelAnimationFrame(app.rafId); setMainLabel('PAUSA'); qs('#bbToggle').textContent='Riprendi';
+    cancelAnimationFrame(app.rafId); setMainLabel('PAUSA'); els.bbToggle.textContent='Riprendi';
   }
+
   function resume(){
     if(!app.running || !app.paused) return;
     const now=performance.now(); const paused = now - app.pauseTs;
     app.phaseEndTs += paused; if(app.nextSignalTs) app.nextSignalTs += paused;
-    app.paused=false; qs('#bbToggle').textContent='Pausa';
+    app.paused=false; els.bbToggle.textContent='Pausa';
+
+    // 👉 mostra SUBITO il contenuto (numero/colore o testo fase)
+    renderCurrent();
+
     app.rafId = requestAnimationFrame(loop);
   }
+
   function stop(){
     app.running=false; app.paused=false; cancelAnimationFrame(app.rafId);
     resetUI(); exitRun();
@@ -457,6 +497,7 @@
       app.startTs=now; app.phaseEndTs=now+app.workMs; app.nextSignalTs=now; beep(880,0.12,'square');
     }
   }
+
   function finish(){
     setPhase('fine'); setMainLabel('FINE ✅'); setBg('#0a0f16'); setTimeLeft(0);
     beep(440,0.1,'sine'); setTimeout(()=>beep(660,0.1,'sine'),120); setTimeout(()=>beep(880,0.1,'sine'),240);
@@ -504,7 +545,7 @@
   els.startBtn.addEventListener('click', start, {passive:true});
   // Bottom bar
   els.bbToggle.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
-  // 👉 Stop: click immediato (niente pressione lunga)
+  // Stop immediato
   els.bbStop.addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
   // Tap centro = pausa/riprendi
   els.hitArea.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
@@ -512,11 +553,11 @@
 })();
 </script>
 
-<!-- SW register (se usi il service worker) -->
+<!-- SW register: aggiorna anche sw.js a VERSION 'v6' -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=4').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=6').catch(()=>{});
   });
 }
 </script>
