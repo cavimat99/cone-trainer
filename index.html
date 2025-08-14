@@ -18,10 +18,11 @@
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html, body{height:100%; overflow:hidden;}
   body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif;}
+  button{ -webkit-appearance:none; appearance:none; }
 
   .app{height:100dvh; display:grid; grid-template-rows: 1fr auto;}
 
-  /* --- Brand hero (refined) --- */
+  /* --- Brand hero --- */
   .brand{
     padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
     margin: 0 0 14px;
@@ -49,7 +50,7 @@
   .settingsView{
     padding: 8px 14px 10px;
     background:var(--panel); border-bottom:1px solid #1b2433;
-    overflow:hidden; /* ← nessuno scroll */
+    overflow:hidden; /* niente scroll */
     position:relative;
   }
   .settingsInner{ transform-origin: top center; will-change: transform; }
@@ -75,17 +76,22 @@
   .dots{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .dot{width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.35)}
 
-  /* START (rimane nella seconda riga della grid, niente scroll) */
+  /* START bar più bassa (seconda riga della grid) */
   .startBar{
-    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
-    background:linear-gradient(180deg, rgba(10,16,24,0), rgba(10,16,24,.65));
-    display:flex; gap:10px; align-items:center; justify-content:center;
+    margin-top: 0;
+    padding: 4px 12px calc(4px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba(10,16,24,0), rgba(10,16,24,.55));
+    display: flex; align-items: center; justify-content: center;
   }
   .btn{
-    flex:1; max-width:420px;
-    padding:16px 18px; border:none; border-radius:14px; font-size:18px; font-weight:900;
-    color:#fff; background:var(--accent); cursor:pointer; touch-action:manipulation;
-    box-shadow:0 10px 28px rgba(59,130,246,.35);
+    width: 100%;
+    max-width: 520px;
+    height: 54px;
+    border: none; border-radius: 16px;
+    font-size: 20px; font-weight: 900; letter-spacing: .02em;
+    color: #fff; background: var(--accent);
+    cursor: pointer; touch-action: manipulation;
+    box-shadow: 0 8px 18px rgba(59,130,246,.18);
   }
 
   /* ============ RUN (full) ============ */
@@ -135,7 +141,7 @@
 <body>
   <div class="app">
 
-    <!-- SETTINGS (nessuno scroll: il contenuto è in settingsInner e si adatta) -->
+    <!-- SETTINGS -->
     <section id="settings" class="settingsView">
       <div id="settingsInner" class="settingsInner">
 
@@ -287,7 +293,6 @@
   const qsa = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
   const els = {
-    // settings
     settings: $('settings'),
     settingsInner: $('settingsInner'),
     startBar: $('startBar'),
@@ -301,7 +306,6 @@
     saveColors: $('saveColors'),
     cancelColors: $('cancelColors'),
     editColorsBtn: $('editColorsBtn'),
-    // run
     run: $('run'), stage: $('stage'), flash: $('flash'),
     setInfo: $('setInfo'), phaseLabel: $('phaseLabel'), mainLabel: $('mainLabel'), timeLeft: $('timeLeft'),
     bbToggle: $('bbToggle'), bbStop: $('bbStop'), hitArea: $('hitArea'),
@@ -333,7 +337,7 @@
     inner.style.marginTop = `${extra}px`;
   }
 
-  /* ======= UI: chips ======= */
+  /* ======= UI ======= */
   function readSettings(){
     const mode = qs('.chip[data-group="mode"].selected').dataset.value;
     const work = Number(qs('.chip[data-group="work"].selected').dataset.value)*1000;
@@ -354,7 +358,6 @@
           qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.remove('selected'));
           btn.classList.add('selected');
         }
-        // toggle blocchi per modalità
         if(group==='mode'){
           const mode = btn.dataset.value;
           els.colorCountRow.classList.toggle('hidden', mode!=='color');
@@ -362,7 +365,7 @@
           els.paletteRow.classList.toggle('hidden', mode!=='color');
           updateColorPreview();
         }
-        if(group==='count'){ // cambia numero coni/numeri
+        if(group==='count'){
           const val = Number(btn.dataset.value);
           if(qs('.chip[data-group="mode"].selected').dataset.value==='color'){
             if(app.colors.length < val){
@@ -374,7 +377,7 @@
             updateColorPreview();
           }
         }
-        fitSettings(); // ← ricalcola per mantenere tutto visibile
+        fitSettings(); // mantieni tutto visibile
       }, {passive:true});
     });
   }
@@ -425,15 +428,11 @@
   function setSetInfo(){ els.setInfo.textContent = `Set ${app.setIndex+1} di ${app.totalSets}`; }
   function chooseNextIndex(pool){ if(pool<=1) return 0; let i; do{i=Math.floor(Math.random()*pool);}while(i===app.currentIdx); return (app.currentIdx=i); }
   function flashEdge(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
-
-  // Ridisegna subito lo stato corrente quando riprendi
   function renderCurrent(){
     if(app.phase === 'work'){
       if(app.mode === 'color'){
-        if(app.currentIdx >= 0){
-          const c = app.colors[app.currentIdx] || '#0a0f16';
-          setBg(c); setMainLabel(`#${app.currentIdx+1}`);
-        } else { setBg('#0a0f16'); setMainLabel('VAI!'); }
+        if(app.currentIdx >= 0){ const c = app.colors[app.currentIdx] || '#0a0f16'; setBg(c); setMainLabel(`#${app.currentIdx+1}`); }
+        else { setBg('#0a0f16'); setMainLabel('VAI!'); }
       } else {
         if(app.currentIdx >= 0){ setBg('#0a0f16'); setMainLabel(String(app.currentIdx+1)); }
         else { setBg('#0a0f16'); setMainLabel('VAI!'); }
@@ -495,7 +494,7 @@
     const now=performance.now(); const paused = now - app.pauseTs;
     app.phaseEndTs += paused; if(app.nextSignalTs) app.nextSignalTs += paused;
     app.paused=false; els.bbToggle.textContent='Pausa';
-    renderCurrent(); // mostra subito numero/colore
+    renderCurrent(); // ripristina subito numero/colore
     app.rafId = requestAnimationFrame(loop);
   }
   function stop(){
@@ -559,9 +558,8 @@
     app.rafId = requestAnimationFrame(loop);
   }
 
-  /* ======= Events ======= */
+  /* ======= Init & Events ======= */
   bindChips();
-  // inizializza righe e anteprima poi adatta
   (function initRows(){
     const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
     els.colorCountRow.classList.toggle('hidden', modeSel!=='color');
@@ -571,24 +569,22 @@
     fitSettings();
   })();
 
-  // Start / Controls
   els.startBtn.addEventListener('click', start, {passive:true});
   els.bbToggle.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
   els.bbStop.addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
   els.hitArea.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
 
-  // adatta su load/resize/rotazione
   window.addEventListener('load', fitSettings);
   window.addEventListener('resize', fitSettings);
   if (window.visualViewport) window.visualViewport.addEventListener('resize', fitSettings);
 })();
 </script>
 
-<!-- Service worker (se lo usi): bump versione per vedere subito gli update -->
+<!-- Service worker (se lo usi): bump per vedere subito gli update -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=13').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=14').catch(()=>{});
   });
 }
 </script>
