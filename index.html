@@ -107,6 +107,35 @@
   .btnPrim{flex:1; padding:12px 14px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-weight:900}
 
   .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(1px,1px,1px,1px)}
+
+  /* --- Brand hero --- */
+.brand{
+  padding-top: max(6px, env(safe-area-inset-top));
+  margin: -4px 0 8px;
+}
+.brandTitle{
+  margin: 0;
+  font-weight: 1000;
+  font-size: clamp(28px, 8vw, 40px);
+  line-height: 1.05;
+  letter-spacing: .02em;
+  color: #eaf2ff;                     /* "CONE" in bianco */
+  text-shadow: 0 2px 24px rgba(59,130,246,.22);
+}
+.brandTitle .accent{
+  background: linear-gradient(90deg,#22d3ee 0%, #3b82f6 55%, #a855f7 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 14px rgba(59,130,246,.35));
+}
+.brandSub{
+  margin-top: 6px;
+  font-size: 12px;
+  color: #9db0c8;
+  letter-spacing: .02em;
+}
+
+  
 </style>
 </head>
 <body>
@@ -114,8 +143,11 @@
 
     <!-- SETTINGS -->
     <section id="settings" class="settingsView">
+      <div class="brand" aria-label="CONE REFLEX">
+  <h1 class="brandTitle">CONE <span class="accent">REFLEX</span></h1>
+  <div class="brandSub">trainer di reazione · colori o numeri</div>
+</div>
       <div>
-        <div class="heading"><h1>CONE REFLEX</h1></div>
         <div class="heading">Imposta allenamento</div>
         <div class="sub">Scegli parametri e premi Start.</div>
       </div>
@@ -572,6 +604,7 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
+
 
 
 
