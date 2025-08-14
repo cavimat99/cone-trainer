@@ -20,10 +20,10 @@
   body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif;}
   button{ -webkit-appearance:none; appearance:none; }
 
-  /* app: una sola sezione; il bottone è fixed */
-  .app{height:100dvh; display:grid; grid-template-rows:1fr;}
+  /* App: due righe (Settings 1fr + Start auto). Niente position:fixed → niente blocchi touch */
+  .app{height:100dvh; display:grid; grid-template-rows: 1fr auto;}
 
-  /* brand */
+  /* Brand */
   .brand{ padding-top: calc(env(safe-area-inset-top, 0px) + 14px); margin: 0 0 14px; }
   .brandTitle{
     margin:0; font-weight:1000; font-size:clamp(30px, 8.5vw, 42px);
@@ -37,13 +37,14 @@
   }
   .brandSub{ margin-top:8px; font-size:12.5px; color:#9db0c8; letter-spacing:.02em }
 
-  /* settings */
+  /* SETTINGS */
   .settingsView{
     padding:8px 14px 10px;
     background:var(--panel); border-bottom:1px solid #1b2433;
     overflow:hidden; position:relative;
   }
-  .settingsInner{ transform-origin:top center; will-change:transform; }
+  .settingsInner{ transform-origin:top center; }
+
   .heading{font-size:18px; color:#cfe1ff; font-weight:800; letter-spacing:.01em; margin-top:10px}
   .sub{font-size:13px; color:var(--muted)}
   .row{display:grid; gap:10px; margin-top:8px; align-items:start; justify-items:start;}
@@ -59,19 +60,18 @@
   .chip.selected{background:var(--accent); border-color:transparent; color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.25)}
   .hidden{display:none}
 
-  /* modalità “compatta” se serve spazio */
+  /* modalità “compatta” quando serve spazio */
   .settingsView.compact .row{gap:8px; margin-top:6px}
   .settingsView.compact .rowGrid{gap:10px}
   .settingsView.compact .chip{padding:8px 10px; font-size:14px}
   .settingsView.compact .chip.small{padding:7px 9px; font-size:12px}
 
-  /* palette */
+  /* Palette */
   .dots{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .dot{width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.35)}
 
-  /* START fisso in basso */
+  /* START in riga separata, attaccato al bordo basso */
   .startBar{
-    position:fixed; left:0; right:0; bottom:0; z-index:40;
     padding: 2px 12px calc(6px + env(safe-area-inset-bottom));
     background:linear-gradient(180deg, rgba(10,16,24,0), rgba(10,16,24,.55));
     display:flex; align-items:center; justify-content:center;
@@ -84,7 +84,7 @@
     box-shadow:0 8px 18px rgba(59,130,246,.18);
   }
 
-  /* run */
+  /* RUN */
   .runView{position:relative; background:#000; display:none}
   .runView.on{display:block}
   .stage{position:absolute; inset:0; display:grid; place-items:center; transition:background-color .18s ease}
@@ -114,7 +114,7 @@
   .bb{flex:1; max-width:280px; padding:14px 16px; border:none; border-radius:14px; font-size:18px; font-weight:800; color:#fff; cursor:pointer; touch-action:manipulation}
   .bb.primary{background:var(--accent)} .bb.danger{background:var(--danger)}
 
-  /* modal colori */
+  /* Modal colori */
   .modal{position:fixed; inset:0; display:none; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.5); z-index:20}
   .modal.on{display:flex}
   .sheet{width:100%; max-width:520px; background:#0f1622; border-radius:16px 16px 0 0; border:1px solid #1b2433; padding:14px 14px max(14px, calc(14px + env(safe-area-inset-bottom)))}
@@ -195,7 +195,7 @@
           </div>
         </div>
 
-        <!-- Countdown: FILA DEDICATA (sempre) -->
+        <!-- Countdown: riga propria (così non “scende” in Direzione) -->
         <div class="row" id="countdownRow">
           <div class="label">Countdown</div>
           <div class="chips">
@@ -240,7 +240,6 @@
           </div>
         </div>
 
-        <!-- Palette colori -->
         <div class="row" id="paletteRow">
           <div class="label">Colori (modalità Colori)</div>
           <div class="chips">
@@ -252,7 +251,7 @@
       </div>
     </section>
 
-    <!-- START fixed -->
+    <!-- START (riga 2 della grid, attaccato al bordo) -->
     <div class="startBar" id="startBar"><button id="startBtn" class="btn">START</button></div>
 
     <!-- RUN -->
@@ -325,23 +324,21 @@
     rafId:null, audioCtx:null, beep:true
   };
 
-  /* Adatta i settings sopra allo START (nessuna sovrapposizione) */
+  /* Adatta i settings al riquadro disponibile (sopra allo START) */
   function fitSettings(){
     const inner = els.settingsInner, view = els.settings;
     if(!inner || !view) return;
 
-    const sbh = els.startBar ? els.startBar.offsetHeight : 60;       // altezza start
-    const clearance = 12;                                            // spazio extra anti-overlay
-
+    // reset
     inner.style.transform = 'scale(1)';
     inner.style.marginTop = '0px';
     view.classList.remove('compact');
 
-    const avail = view.clientHeight - sbh - clearance;               // spazio utile reale
+    const avail = view.clientHeight;          // la grid ha già tolto lo spazio dello START
     const needed = inner.scrollHeight;
 
     let scale = Math.min(1, avail / needed);
-    scale = Math.max(0.6, scale);                                    // non scendere sotto 60%
+    scale = Math.max(0.6, scale);             // non scendere sotto 60%
     inner.style.transform = `scale(${scale})`;
 
     if (scale < 0.82) view.classList.add('compact');
@@ -377,13 +374,10 @@
         }
         if(group==='mode'){
           const mode = btn.dataset.value;
-          const isColor = mode==='color';
-          const isNumber = mode==='number';
-          const isDirection = mode==='direction';
-          els.colorCountRow.classList.toggle('hidden', !isColor);
-          els.numberCountRow.classList.toggle('hidden', !isNumber);
-          els.directionRow.classList.toggle('hidden', !isDirection);
-          els.paletteRow.classList.toggle('hidden', !isColor);
+          els.colorCountRow.classList.toggle('hidden', mode!=='color');
+          els.numberCountRow.classList.toggle('hidden', mode!=='number');
+          els.directionRow.classList.toggle('hidden', mode!=='direction');
+          els.paletteRow.classList.toggle('hidden', mode!=='color');
           updateColorPreview();
         }
         if(group==='count' && qs('.chip[data-group="mode"].selected').dataset.value==='color'){
@@ -401,7 +395,7 @@
     });
   }
 
-  /* palette */
+  /* Palette */
   function updateColorPreview(){
     els.colorPreview.innerHTML='';
     const mode = qs('.chip[data-group="mode"].selected').dataset.value;
@@ -425,9 +419,9 @@
     els.colorModal.classList.add('on'); els.colorModal.setAttribute('aria-hidden','false');
   }
   function closeColorModal(){ els.colorModal.classList.remove('on'); els.colorModal.setAttribute('aria-hidden','true'); }
-  els.editColorsBtn.addEventListener('click', openColorModal, {passive:true});
-  els.cancelColors.addEventListener('click', closeColorModal, {passive:true});
-  els.saveColors.addEventListener('click', ()=>{
+  $('editColorsBtn').addEventListener('click', openColorModal, {passive:true});
+  $('cancelColors').addEventListener('click', closeColorModal, {passive:true});
+  $('saveColors').addEventListener('click', ()=>{
     const inputs = qsa('input[type="color"]', els.colorsGrid);
     inputs.forEach(inp=>{
       const idx=Number(inp.dataset.index);
@@ -438,7 +432,7 @@
   }, {passive:true});
   els.colorModal.addEventListener('click', (e)=>{ if(e.target===els.colorModal) closeColorModal(); }, {passive:true});
 
-  /* helpers */
+  /* Helpers */
   const fmtSec=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
   function setBg(c){ els.stage.style.background=c; }
   function setPhase(p){ app.phase=p; els.phaseLabel.textContent=p.toUpperCase(); }
@@ -471,7 +465,7 @@
     } else if(app.phase === 'fine'){ setBg('#0a0f16'); setMainLabel('FINE ✅'); }
   }
 
-  /* audio */
+  /* Audio */
   function beep(freq=880, dur=0.08, type='sine'){
     if(!app.beep) return;
     try{
@@ -485,7 +479,7 @@
     }catch(e){}
   }
 
-  /* flow */
+  /* Flow */
   function enterRun(){ els.settings.style.display='none'; els.startBar.style.display='none'; els.run.classList.add('on'); }
   function exitRun(){ els.run.classList.remove('on'); els.settings.style.display='block'; els.startBar.style.display='flex'; fitSettings(); }
   function resetUI(){ setPhase('pronto'); setMainLabel('—'); setTimeLeft(0); setBg('#0a0f16'); els.setInfo.textContent='Set —'; }
@@ -577,7 +571,7 @@
       } else if(app.mode==='number'){
         const idx=chooseNextIndex(app.numbers);
         const shown=idx+1; setBg('#0a0f16'); setMainLabel(String(shown));
-      } else {
+      } else { // direction
         const arr = DIRECTIONS[app.directionSet] || DIRECTIONS.lat;
         const idx=chooseNextIndex(arr.length);
         const sym = arr[idx]; setBg('#0a0f16'); setMainLabel(sym);
@@ -591,7 +585,7 @@
     app.rafId = requestAnimationFrame(loop);
   }
 
-  /* init */
+  /* Init */
   bindChips();
   (function initRows(){
     const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
@@ -603,10 +597,10 @@
     fitSettings();
   })();
 
-  els.startBtn.addEventListener('click', start, {passive:true});
-  els.bbToggle.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
-  els.bbStop.addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
-  els.hitArea.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
+  $('startBtn').addEventListener('click', start, {passive:true});
+  $('bbToggle').addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
+  $('bbStop').addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
+  $('hitArea').addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
 
   window.addEventListener('load', fitSettings);
   window.addEventListener('resize', fitSettings);
@@ -614,10 +608,11 @@
 })();
 </script>
 
+<!-- SW (se usi PWA): bump per cache busting -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=18').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=19').catch(()=>{});
   });
 }
 </script>
