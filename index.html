@@ -14,6 +14,7 @@
   :root{
     --bg:#0a0f16; --panel:#0f1622; --text:#e8eef6;
     --muted:#9db0c8; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
+    --mode-slot-h: 160px; /* altezza riservata (verrà calcolata via JS all'avvio) */
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html, body{height:100%; overflow:hidden;}
@@ -58,13 +59,24 @@
   }
   .chip.small{font-size:13px; padding:8px 10px}
   .chip.selected{background:var(--accent); border-color:transparent; color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.25)}
-  .hidden{display:none}
 
-  /* Anteprima palette */
   .dots{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .dot{width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.35)}
 
-  /* START (basso ma non tagliato) */
+  /* --- SLOT MODALITÀ: altezza fissa, varianti sovrapposte --- */
+  .modeSlot{
+    position:relative; width:100%;
+    min-height: var(--mode-slot-h);
+    border:1px solid #1b2433; border-radius:12px; padding:10px;
+    background:#0e1420;
+  }
+  .variant{
+    position:absolute; left:10px; right:10px; top:10px; /* dentro il padding dello slot */
+    opacity:0; visibility:hidden; pointer-events:none; transition:opacity .15s ease;
+  }
+  .variant.on{ opacity:1; visibility:visible; pointer-events:auto; }
+
+  /* START bar bassa */
   .startBar{
     margin-top: 0;
     padding: 4px 12px calc(4px + env(safe-area-inset-bottom));
@@ -133,7 +145,7 @@
         <!-- HERO BRAND -->
         <div class="brand" aria-label="CONE REFLEX">
           <h1 class="brandTitle">CONE <span class="accent">REFLEX</span></h1>
-          <div class="brandSub">trainer di reazione · colori o numeri o direzioni</div>
+          <div class="brandSub">trainer di reazione · colori · numeri · direzioni</div>
         </div>
 
         <div class="heading">Imposta allenamento</div>
@@ -180,53 +192,72 @@
               <button class="chip" data-group="sets" data-value="10">10</button>
             </div>
           </div>
+
+          <!-- Slot fisso: qui dentro cambiano solo le opzioni della modalità -->
           <div class="row">
-            <div class="label">Intervallo segnali (s)</div>
-            <div class="chips">
-              <button class="chip" data-group="interval" data-value="3">3</button>
-              <button class="chip selected" data-group="interval" data-value="5">5</button>
-              <button class="chip" data-group="interval" data-value="8">8</button>
-            </div>
+            <div id="modeSlot" class="modeSlot">
+              <!-- Variante COLORI -->
+              <div id="variantColor" class="variant on">
+                <div class="row" id="colorCountRow">
+                  <div class="label">Quanti coni</div>
+                  <div class="chips">
+                    <button class="chip" data-group="count" data-value="3">3</button>
+                    <button class="chip selected" data-group="count" data-value="5">5</button>
+                    <button class="chip" data-group="count" data-value="6">6</button>
+                  </div>
+                </div>
+                <div class="row" id="paletteRow">
+                  <div class="label">Colori (modalità Colori)</div>
+                  <div class="chips">
+                    <div class="dots" id="colorPreview"></div>
+                    <button class="chip small" id="editColorsBtn">Modifica colori</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Variante NUMERI -->
+              <div id="variantNumber" class="variant">
+                <div class="row" id="numberCountRow">
+                  <div class="label">Quanti numeri</div>
+                  <div class="chips">
+                    <button class="chip" data-group="count" data-value="3">3</button>
+                    <button class="chip selected" data-group="count" data-value="5">5</button>
+                    <button class="chip" data-group="count" data-value="8">8</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Variante DIREZIONE -->
+              <div id="variantDirection" class="variant">
+                <div class="row" id="directionRow">
+                  <div class="label">Direzioni</div>
+                  <div class="chips">
+                    <button class="chip selected" data-group="direction" data-value="lat">Laterali (← →)</button>
+                    <button class="chip" data-group="direction" data-value="ver">Verticali (↑ ↓)</button>
+                    <button class="chip" data-group="direction" data-value="obl">Oblique (↖ ↗ ↘ ↙)</button>
+                    <button class="chip" data-group="direction" data-value="all">Tutte (8)</button>
+                  </div>
+                </div>
+              </div>
+            </div><!-- /modeSlot -->
           </div>
         </div>
 
-        <div class="rowGrid">
-          <div class="row">
-            <div class="label">Countdown</div>
-            <div class="chips">
-              <button class="chip" data-group="countdown" data-value="0">Off</button>
-              <button class="chip selected" data-group="countdown" data-value="3">3</button>
-              <button class="chip" data-group="countdown" data-value="5">5</button>
-            </div>
+        <div class="row">
+          <div class="label">Intervallo segnali (s)</div>
+          <div class="chips">
+            <button class="chip" data-group="interval" data-value="3">3</button>
+            <button class="chip selected" data-group="interval" data-value="5">5</button>
+            <button class="chip" data-group="interval" data-value="8">8</button>
           </div>
+        </div>
 
-          <!-- Quanti coni / numeri -->
-          <div class="row" id="colorCountRow">
-            <div class="label">Quanti coni</div>
-            <div class="chips">
-              <button class="chip" data-group="count" data-value="3">3</button>
-              <button class="chip selected" data-group="count" data-value="5">5</button>
-              <button class="chip" data-group="count" data-value="6">6</button>
-            </div>
-          </div>
-          <div class="row hidden" id="numberCountRow">
-            <div class="label">Quanti numeri</div>
-            <div class="chips">
-              <button class="chip" data-group="count" data-value="3">3</button>
-              <button class="chip selected" data-group="count" data-value="5">5</button>
-              <button class="chip" data-group="count" data-value="8">8</button>
-            </div>
-          </div>
-
-          <!-- Direzioni (solo per modalità Direzione) -->
-          <div class="row hidden" id="directionRow">
-            <div class="label">Direzioni</div>
-            <div class="chips">
-              <button class="chip selected" data-group="direction" data-value="lat">Laterali (← →)</button>
-              <button class="chip" data-group="direction" data-value="ver">Verticali (↑ ↓)</button>
-              <button class="chip" data-group="direction" data-value="obl">Oblique (↖ ↗ ↘ ↙)</button>
-              <button class="chip" data-group="direction" data-value="all">Tutte (8)</button>
-            </div>
+        <div class="row">
+          <div class="label">Countdown</div>
+          <div class="chips">
+            <button class="chip" data-group="countdown" data-value="0">Off</button>
+            <button class="chip selected" data-group="countdown" data-value="3">3</button>
+            <button class="chip" data-group="countdown" data-value="5">5</button>
           </div>
         </div>
 
@@ -235,15 +266,6 @@
           <div class="chips">
             <button class="chip small selected" data-group="beep" data-value="on">Suono ON</button>
             <button class="chip small" data-group="beep" data-value="off">Suono OFF</button>
-          </div>
-        </div>
-
-        <!-- Palette personalizzabile -->
-        <div class="row" id="paletteRow">
-          <div class="label">Colori (modalità Colori)</div>
-          <div class="chips">
-            <div class="dots" id="colorPreview"></div>
-            <button class="chip small" id="editColorsBtn">Modifica colori</button>
           </div>
         </div>
 
@@ -295,28 +317,27 @@
     settingsInner: $('settingsInner'),
     startBar: $('startBar'),
     startBtn: $('startBtn'),
-    colorCountRow: $('colorCountRow'),
-    numberCountRow: $('numberCountRow'),
-    directionRow: $('directionRow'),
-    paletteRow: $('paletteRow'),
+    // slot & varianti
+    modeSlot: $('modeSlot'),
+    variantColor: $('variantColor'),
+    variantNumber: $('variantNumber'),
+    variantDirection: $('variantDirection'),
+    // color modal & preview
     colorPreview: $('colorPreview'),
     colorModal: $('colorModal'),
     colorsGrid: $('colorsGrid'),
     saveColors: $('saveColors'),
     cancelColors: $('cancelColors'),
     editColorsBtn: $('editColorsBtn'),
+    // run
     run: $('run'), stage: $('stage'), flash: $('flash'),
     setInfo: $('setInfo'), phaseLabel: $('phaseLabel'), mainLabel: $('mainLabel'), timeLeft: $('timeLeft'),
     bbToggle: $('bbToggle'), bbStop: $('bbStop'), hitArea: $('hitArea'),
   };
 
   const defaultPalette = ['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ff9f0a','#32ade6','#ff2d55'];
-
-  /* Direzioni disponibili */
   const DIRECTIONS = {
-    lat: ['←','→'],
-    ver: ['↑','↓'],
-    obl: ['↖','↗','↘','↙'],
+    lat: ['←','→'], ver: ['↑','↓'], obl: ['↖','↗','↘','↙'],
     all: ['←','→','↑','↓','↖','↗','↘','↙']
   };
 
@@ -331,9 +352,28 @@
     beep:true
   };
 
+  /* ======= Calcola altezza slot (max delle varianti) ======= */
+  function measureVariantHeight(v){
+    // misuro in absolute (non altera il layout), ma devo renderla visibile
+    const prev = {pos:v.style.position, vis:v.style.visibility, op:v.style.opacity};
+    v.style.position='absolute'; v.style.visibility='hidden'; v.style.opacity='1';
+    const h = v.scrollHeight;
+    v.style.position=prev.pos; v.style.visibility=prev.vis; v.style.opacity=prev.op;
+    return h;
+  }
+  function setModeSlotHeight(){
+    const vC = measureVariantHeight(els.variantColor);
+    const vN = measureVariantHeight(els.variantNumber);
+    const vD = measureVariantHeight(els.variantDirection);
+    const maxH = Math.max(vC, vN, vD, 120);
+    // un piccolo extra per respirare
+    const finalH = Math.ceil(maxH + 6);
+    document.documentElement.style.setProperty('--mode-slot-h', finalH+'px');
+  }
+
   /* ======= FIT SETTINGS (no-scroll) ======= */
   function fitSettings(){
-    const inner = els.settingsInner, view = els.settings;
+    const inner = $('settingsInner'), view = $('settings');
     if(!inner || !view) return;
     inner.style.transform = 'scale(1)'; inner.style.marginTop = '0px';
     const avail = view.clientHeight;
@@ -354,12 +394,20 @@
     const interval = Number(qs('.chip[data-group="interval"].selected').dataset.value)*1000;
     const countdown = Number(qs('.chip[data-group="countdown"].selected').dataset.value)*1000;
     const beep = qs('.chip[data-group="beep"].selected').dataset.value==='on';
+    // count può esistere in due varianti, ma c'è sempre una sola .selected
     const countChip = qs('.chip[data-group="count"].selected');
     const count = countChip ? Number(countChip.dataset.value) : 5;
-    const directionChip = qs('.chip[data-group="direction"].selected');
-    const direction = directionChip ? directionChip.dataset.value : 'lat';
+    const dirChip = qs('.chip[data-group="direction"].selected');
+    const direction = dirChip ? dirChip.dataset.value : 'lat';
     return {mode, work, rest, sets, interval, countdown, beep, count, direction};
   }
+
+  function showVariant(mode){
+    els.variantColor.classList.toggle('on', mode==='color');
+    els.variantNumber.classList.toggle('on', mode==='number');
+    els.variantDirection.classList.toggle('on', mode==='direction');
+  }
+
   function bindChips(){
     qsa('.chip').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -369,21 +417,18 @@
           qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.remove('selected'));
           btn.classList.add('selected');
         }
-        // toggle blocchi per modalità
+
         if(group==='mode'){
           const mode = btn.dataset.value;
-          const isColor = mode==='color';
-          const isNumber = mode==='number';
-          const isDirection = mode==='direction';
-          els.colorCountRow.classList.toggle('hidden', !isColor);
-          els.numberCountRow.classList.toggle('hidden', !isNumber);
-          els.directionRow.classList.toggle('hidden', !isDirection);
-          els.paletteRow.classList.toggle('hidden', !isColor);
-          updateColorPreview();
+          showVariant(mode);
+          // non spostiamo nulla: lo slot ha altezza fissa
         }
-        if(group==='count'){ // adegua palette quando cambi numero coni
+
+        if(group==='count'){
+          // cambiare numero coni aggiorna palette visiva
+          const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
           const val = Number(btn.dataset.value);
-          if(qs('.chip[data-group="mode"].selected').dataset.value==='color'){
+          if(modeSel==='color'){
             if(app.colors.length < val){
               const more = defaultPalette.slice(app.colors.length, val);
               app.colors = app.colors.concat(more);
@@ -391,9 +436,12 @@
               app.colors = app.colors.slice(0, val);
             }
             updateColorPreview();
+            // il layout della variante colori potrebbe crescere → ricalcolo slot
+            setModeSlotHeight();
           }
         }
-        fitSettings();
+
+        fitSettings(); // mantiene tutto “in quadro” senza scroll
       }, {passive:true});
     });
   }
@@ -402,15 +450,17 @@
   function updateColorPreview(){
     els.colorPreview.innerHTML='';
     const mode = qs('.chip[data-group="mode"].selected').dataset.value;
-    if(mode!=='color'){ return; }
-    const count = Number(qs('.chip[data-group="count"].selected').dataset.value);
+    // anteprima solo se sei su modalità colori (ma non serve al layout)
+    const countChip = qs('.chip[data-group="count"].selected');
+    const count = countChip ? Number(countChip.dataset.value) : 5;
     const palette = app.colors.slice(0,count);
     palette.forEach(c=>{
       const d=document.createElement('div'); d.className='dot'; d.style.background=c; els.colorPreview.appendChild(d);
     });
   }
   function openColorModal(){
-    const count = Number(qs('.chip[data-group="count"].selected').dataset.value);
+    const countChip = qs('.chip[data-group="count"].selected');
+    const count = countChip ? Number(countChip.dataset.value) : 5;
     const palette = app.colors.slice(0,count);
     els.colorsGrid.innerHTML='';
     for(let i=0;i<count;i++){
@@ -422,9 +472,9 @@
     els.colorModal.classList.add('on'); els.colorModal.setAttribute('aria-hidden','false');
   }
   function closeColorModal(){ els.colorModal.classList.remove('on'); els.colorModal.setAttribute('aria-hidden','true'); }
-  els.editColorsBtn.addEventListener('click', openColorModal, {passive:true});
-  els.cancelColors.addEventListener('click', closeColorModal, {passive:true});
-  els.saveColors.addEventListener('click', ()=>{
+  $('editColorsBtn').addEventListener('click', openColorModal, {passive:true});
+  $('cancelColors').addEventListener('click', closeColorModal, {passive:true});
+  $('saveColors').addEventListener('click', ()=>{
     const inputs = qsa('input[type="color"]', els.colorsGrid);
     inputs.forEach(inp=>{
       const idx=Number(inp.dataset.index);
@@ -449,6 +499,7 @@
   function setSetInfo(){ els.setInfo.textContent = `Set ${app.setIndex+1} di ${app.totalSets}`; }
   function chooseNextIndex(pool){ if(pool<=1) return 0; let i; do{i=Math.floor(Math.random()*pool);}while(i===app.currentIdx); return (app.currentIdx=i); }
   function flashEdge(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
+
   function renderCurrent(){
     if(app.phase === 'work'){
       if(app.mode === 'color'){
@@ -482,9 +533,9 @@
   }
 
   /* ======= Flow ======= */
-  function enterRun(){ els.settings.style.display='none'; els.startBar.style.display='none'; els.run.classList.add('on'); }
-  function exitRun(){ els.run.classList.remove('on'); els.settings.style.display='block'; els.startBar.style.display='flex'; fitSettings(); }
-  function resetUI(){ setPhase('pronto'); setMainLabel('—'); setTimeLeft(0); setBg('#0a0f16'); els.setInfo.textContent='Set —'; }
+  function enterRun(){ $('settings').style.display='none'; $('startBar').style.display='none'; $('run').classList.add('on'); }
+  function exitRun(){ $('run').classList.remove('on'); $('settings').style.display='block'; $('startBar').style.display='flex'; fitSettings(); }
+  function resetUI(){ setPhase('pronto'); setMainLabel('—'); setTimeLeft(0); setBg('#0a0f16'); $('setInfo').textContent='Set —'; }
 
   function start(){
     if(app.running) return;
@@ -513,13 +564,13 @@
   function pause(){
     if(!app.running || app.paused) return;
     app.paused=true; app.pauseTs=performance.now();
-    cancelAnimationFrame(app.rafId); setMainLabel('PAUSA'); els.bbToggle.textContent='Riprendi';
+    cancelAnimationFrame(app.rafId); setMainLabel('PAUSA'); $('bbToggle').textContent='Riprendi';
   }
   function resume(){
     if(!app.running || !app.paused) return;
     const now=performance.now(); const paused = now - app.pauseTs;
     app.phaseEndTs += paused; if(app.nextSignalTs) app.nextSignalTs += paused;
-    app.paused=false; els.bbToggle.textContent='Pausa';
+    app.paused=false; $('bbToggle').textContent='Pausa';
     renderCurrent(); // ripristina subito il segnale
     app.rafId = requestAnimationFrame(loop);
   }
@@ -589,25 +640,25 @@
   }
 
   /* ======= Init & Events ======= */
-  bindChips();
-  (function initRows(){
-    const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
-    els.colorCountRow.classList.toggle('hidden', modeSel!=='color');
-    els.numberCountRow.classList.toggle('hidden', modeSel!=='number');
-    els.directionRow.classList.toggle('hidden', modeSel!=='direction');
-    els.paletteRow.classList.toggle('hidden', modeSel!=='color');
+  function initUI(){
+    showVariant('color');       // default
     updateColorPreview();
-    fitSettings();
-  })();
+    setModeSlotHeight();        // calcola altezza fissa una volta
+    fitSettings();              // adatta senza scroll
+  }
 
-  els.startBtn.addEventListener('click', start, {passive:true});
-  els.bbToggle.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
-  els.bbStop.addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
-  els.hitArea.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
+  bindChips();
+  initUI();
 
-  window.addEventListener('load', fitSettings);
-  window.addEventListener('resize', fitSettings);
-  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitSettings);
+  $('startBtn').addEventListener('click', start, {passive:true});
+  $('bbToggle').addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
+  $('bbStop').addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
+  $('hitArea').addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
+
+  // ricalcola slot se ruoti/resize (per sicurezza)
+  window.addEventListener('resize', ()=>{ setModeSlotHeight(); fitSettings(); });
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', ()=>{ setModeSlotHeight(); fitSettings(); });
+
 })();
 </script>
 
@@ -615,7 +666,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=15').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=16').catch(()=>{});
   });
 }
 </script>
