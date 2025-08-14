@@ -23,25 +23,15 @@
   .app{height:100dvh; display:grid; grid-template-rows: 1fr auto;}
 
   /* --- Brand hero --- */
-  .brand{
-    padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
-    margin: 0 0 14px;
-  }
+  .brand{ padding-top: calc(env(safe-area-inset-top, 0px) + 14px); margin: 0 0 14px; }
   .brandTitle{
-    margin: 0;
-    font-weight: 1000;
-    font-size: clamp(30px, 8.5vw, 42px);
-    line-height: 1.06;
-    letter-spacing: .02em;
-    color: #eef5ff;
-    text-shadow:
-      0 2px 10px rgba(59,130,246,.18),
-      0 6px 26px rgba(59,130,246,.12);
+    margin: 0; font-weight: 1000; font-size: clamp(30px, 8.5vw, 42px);
+    line-height: 1.06; letter-spacing: .02em; color: #eef5ff;
+    text-shadow: 0 2px 10px rgba(59,130,246,.18), 0 6px 26px rgba(59,130,246,.12);
   }
   .brandTitle .accent{
     background: linear-gradient(90deg,#22d3ee 0%, #3b82f6 55%, #a855f7 100%);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 0 10px rgba(59,130,246,.28));
   }
   .brandSub{ margin-top:8px; font-size:12.5px; color:#9db0c8; letter-spacing:.02em }
@@ -50,14 +40,12 @@
   .settingsView{
     padding: 8px 14px 10px;
     background:var(--panel); border-bottom:1px solid #1b2433;
-    overflow:hidden; /* niente scroll */
-    position:relative;
+    overflow:hidden; position:relative;        /* no scroll */
   }
   .settingsInner{ transform-origin: top center; will-change: transform; }
 
   .heading{font-size:18px; color:#cfe1ff; font-weight:800; letter-spacing:.01em; margin-top:10px}
   .sub{font-size:13px; color:var(--muted)}
-
   .row{display:grid; gap:10px; margin-top:8px}
   .rowGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
   @media (max-width:390px){ .rowGrid{grid-template-columns:1fr 1fr} }
@@ -76,22 +64,19 @@
   .dots{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .dot{width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.35)}
 
-  /* START bar più bassa (seconda riga della grid) */
+  /* START (basso ma non tagliato) */
   .startBar{
     margin-top: 0;
     padding: 4px 12px calc(4px + env(safe-area-inset-bottom));
     background: linear-gradient(180deg, rgba(10,16,24,0), rgba(10,16,24,.55));
-    display: flex; align-items: center; justify-content: center;
+    display:flex; align-items:center; justify-content:center;
   }
   .btn{
-    width: 100%;
-    max-width: 520px;
-    height: 54px;
-    border: none; border-radius: 16px;
-    font-size: 20px; font-weight: 900; letter-spacing: .02em;
-    color: #fff; background: var(--accent);
-    cursor: pointer; touch-action: manipulation;
-    box-shadow: 0 8px 18px rgba(59,130,246,.18);
+    width:100%; max-width:520px; height:54px;
+    border:none; border-radius:16px;
+    font-size:20px; font-weight:900; letter-spacing:.02em;
+    color:#fff; background:var(--accent); cursor:pointer; touch-action:manipulation;
+    box-shadow:0 8px 18px rgba(59,130,246,.18);
   }
 
   /* ============ RUN (full) ============ */
@@ -148,7 +133,7 @@
         <!-- HERO BRAND -->
         <div class="brand" aria-label="CONE REFLEX">
           <h1 class="brandTitle">CONE <span class="accent">REFLEX</span></h1>
-          <div class="brandSub">trainer di reazione · colori o numeri</div>
+          <div class="brandSub">trainer di reazione · colori o numeri o direzioni</div>
         </div>
 
         <div class="heading">Imposta allenamento</div>
@@ -159,6 +144,7 @@
           <div class="chips">
             <button class="chip selected" data-group="mode" data-value="color">Colori</button>
             <button class="chip" data-group="mode" data-value="number">Numeri</button>
+            <button class="chip" data-group="mode" data-value="direction">Direzione</button>
           </div>
         </div>
 
@@ -214,6 +200,7 @@
             </div>
           </div>
 
+          <!-- Quanti coni / numeri -->
           <div class="row" id="colorCountRow">
             <div class="label">Quanti coni</div>
             <div class="chips">
@@ -228,6 +215,17 @@
               <button class="chip" data-group="count" data-value="3">3</button>
               <button class="chip selected" data-group="count" data-value="5">5</button>
               <button class="chip" data-group="count" data-value="8">8</button>
+            </div>
+          </div>
+
+          <!-- Direzioni (solo per modalità Direzione) -->
+          <div class="row hidden" id="directionRow">
+            <div class="label">Direzioni</div>
+            <div class="chips">
+              <button class="chip selected" data-group="direction" data-value="lat">Laterali (← →)</button>
+              <button class="chip" data-group="direction" data-value="ver">Verticali (↑ ↓)</button>
+              <button class="chip" data-group="direction" data-value="obl">Oblique (↖ ↗ ↘ ↙)</button>
+              <button class="chip" data-group="direction" data-value="all">Tutte (8)</button>
             </div>
           </div>
         </div>
@@ -299,6 +297,7 @@
     startBtn: $('startBtn'),
     colorCountRow: $('colorCountRow'),
     numberCountRow: $('numberCountRow'),
+    directionRow: $('directionRow'),
     paletteRow: $('paletteRow'),
     colorPreview: $('colorPreview'),
     colorModal: $('colorModal'),
@@ -313,10 +312,19 @@
 
   const defaultPalette = ['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ff9f0a','#32ade6','#ff2d55'];
 
+  /* Direzioni disponibili */
+  const DIRECTIONS = {
+    lat: ['←','→'],
+    ver: ['↑','↓'],
+    obl: ['↖','↗','↘','↙'],
+    all: ['←','→','↑','↓','↖','↗','↘','↙']
+  };
+
   let app = {
     running:false, paused:false, phase:'idle',
     mode:'color', workMs:30000, restMs:30000, sets:5, intervalMs:5000, countdownMs:3000,
     count:5, colors:defaultPalette.slice(0,5), numbers:5,
+    directionSet:'lat',
     currentIdx:-1, setIndex:0, totalSets:5,
     startTs:0, phaseEndTs:0, nextSignalTs:0, pauseTs:0,
     rafId:null, audioCtx:null,
@@ -345,27 +353,35 @@
     const sets = Number(qs('.chip[data-group="sets"].selected').dataset.value);
     const interval = Number(qs('.chip[data-group="interval"].selected').dataset.value)*1000;
     const countdown = Number(qs('.chip[data-group="countdown"].selected').dataset.value)*1000;
-    const count = Number(qs('.chip[data-group="count"].selected').dataset.value);
     const beep = qs('.chip[data-group="beep"].selected').dataset.value==='on';
-    return {mode, work, rest, sets, interval, countdown, count, beep};
+    const countChip = qs('.chip[data-group="count"].selected');
+    const count = countChip ? Number(countChip.dataset.value) : 5;
+    const directionChip = qs('.chip[data-group="direction"].selected');
+    const direction = directionChip ? directionChip.dataset.value : 'lat';
+    return {mode, work, rest, sets, interval, countdown, beep, count, direction};
   }
   function bindChips(){
     qsa('.chip').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const group = btn.dataset.group;
-        const single = ['mode','work','rest','sets','interval','countdown','count','beep'];
+        const single = ['mode','work','rest','sets','interval','countdown','count','beep','direction'];
         if(single.includes(group)){
           qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.remove('selected'));
           btn.classList.add('selected');
         }
+        // toggle blocchi per modalità
         if(group==='mode'){
           const mode = btn.dataset.value;
-          els.colorCountRow.classList.toggle('hidden', mode!=='color');
-          els.numberCountRow.classList.toggle('hidden', mode!=='number');
-          els.paletteRow.classList.toggle('hidden', mode!=='color');
+          const isColor = mode==='color';
+          const isNumber = mode==='number';
+          const isDirection = mode==='direction';
+          els.colorCountRow.classList.toggle('hidden', !isColor);
+          els.numberCountRow.classList.toggle('hidden', !isNumber);
+          els.directionRow.classList.toggle('hidden', !isDirection);
+          els.paletteRow.classList.toggle('hidden', !isColor);
           updateColorPreview();
         }
-        if(group==='count'){
+        if(group==='count'){ // adegua palette quando cambi numero coni
           const val = Number(btn.dataset.value);
           if(qs('.chip[data-group="mode"].selected').dataset.value==='color'){
             if(app.colors.length < val){
@@ -377,7 +393,7 @@
             updateColorPreview();
           }
         }
-        fitSettings(); // mantieni tutto visibile
+        fitSettings();
       }, {passive:true});
     });
   }
@@ -423,7 +439,12 @@
   const fmtSec=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
   function setBg(c){ els.stage.style.background=c; }
   function setPhase(p){ app.phase=p; els.phaseLabel.textContent=p.toUpperCase(); }
-  function setMainLabel(t){ const s=String(t); const isNum=/^#?\d+$/.test(s); els.mainLabel.classList.toggle('word', !isNum); els.mainLabel.textContent=s; }
+  function setMainLabel(t){
+    const s=String(t);
+    const isNumOrArrow = /^#?\d+$/.test(s) || /^[←→↑↓↖↗↘↙]$/.test(s);
+    els.mainLabel.classList.toggle('word', !isNumOrArrow);
+    els.mainLabel.textContent=s;
+  }
   function setTimeLeft(ms){ els.timeLeft.textContent=fmtSec(ms); }
   function setSetInfo(){ els.setInfo.textContent = `Set ${app.setIndex+1} di ${app.totalSets}`; }
   function chooseNextIndex(pool){ if(pool<=1) return 0; let i; do{i=Math.floor(Math.random()*pool);}while(i===app.currentIdx); return (app.currentIdx=i); }
@@ -433,8 +454,12 @@
       if(app.mode === 'color'){
         if(app.currentIdx >= 0){ const c = app.colors[app.currentIdx] || '#0a0f16'; setBg(c); setMainLabel(`#${app.currentIdx+1}`); }
         else { setBg('#0a0f16'); setMainLabel('VAI!'); }
-      } else {
+      } else if(app.mode === 'number'){
         if(app.currentIdx >= 0){ setBg('#0a0f16'); setMainLabel(String(app.currentIdx+1)); }
+        else { setBg('#0a0f16'); setMainLabel('VAI!'); }
+      } else { // direction
+        const arr = DIRECTIONS[app.directionSet] || DIRECTIONS.lat;
+        if(app.currentIdx >= 0){ setBg('#0a0f16'); setMainLabel(arr[app.currentIdx]); }
         else { setBg('#0a0f16'); setMainLabel('VAI!'); }
       }
     } else if(app.phase === 'rest'){ setBg('#0a0f16'); setMainLabel('RECUPERO');
@@ -470,6 +495,7 @@
       mode:cfg.mode, setIndex:0, totalSets:cfg.sets,
       workMs:cfg.work, restMs:cfg.rest, intervalMs:cfg.interval, countdownMs:cfg.countdown,
       count:cfg.count, numbers:cfg.count, beep:cfg.beep,
+      directionSet: cfg.direction,
       colors: app.colors.slice(0, cfg.count),
       currentIdx:-1, startTs:performance.now()
     };
@@ -494,7 +520,7 @@
     const now=performance.now(); const paused = now - app.pauseTs;
     app.phaseEndTs += paused; if(app.nextSignalTs) app.nextSignalTs += paused;
     app.paused=false; els.bbToggle.textContent='Pausa';
-    renderCurrent(); // ripristina subito numero/colore
+    renderCurrent(); // ripristina subito il segnale
     app.rafId = requestAnimationFrame(loop);
   }
   function stop(){
@@ -544,10 +570,14 @@
     if(app.phase==='work' && now>=app.nextSignalTs){
       if(app.mode==='color'){
         const idx=chooseNextIndex(app.colors.length);
-        const c=app.colors[idx]; setBg(c); setMainLabel(`#${idx+1}`); 
-      } else {
+        const c=app.colors[idx]; setBg(c); setMainLabel(`#${idx+1}`);
+      } else if(app.mode==='number'){
         const idx=chooseNextIndex(app.numbers);
         const shown=idx+1; setBg('#0a0f16'); setMainLabel(String(shown));
+      } else { // direction
+        const arr = DIRECTIONS[app.directionSet] || DIRECTIONS.lat;
+        const idx=chooseNextIndex(arr.length);
+        const sym = arr[idx]; setBg('#0a0f16'); setMainLabel(sym);
       }
       flashEdge();
       beep(1200,0.05,'square'); setTimeout(()=>beep(900,0.05,'square'),60);
@@ -564,6 +594,7 @@
     const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
     els.colorCountRow.classList.toggle('hidden', modeSel!=='color');
     els.numberCountRow.classList.toggle('hidden', modeSel!=='number');
+    els.directionRow.classList.toggle('hidden', modeSel!=='direction');
     els.paletteRow.classList.toggle('hidden', modeSel!=='color');
     updateColorPreview();
     fitSettings();
@@ -584,7 +615,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=14').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=15').catch(()=>{});
   });
 }
 </script>
