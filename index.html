@@ -14,7 +14,7 @@
   :root{
     --bg:#0a0f16; --panel:#0f1622; --text:#e8eef6;
     --muted:#9db0c8; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
-    --mode-slot-h: 160px; /* altezza riservata (verrà calcolata via JS all'avvio) */
+    --mode-slot-h: 160px; /* altezza riservata per lo slot (calcolata al max via JS) */
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html, body{height:100%; overflow:hidden;}
@@ -41,18 +41,27 @@
   .settingsView{
     padding: 8px 14px 10px;
     background:var(--panel); border-bottom:1px solid #1b2433;
-    overflow:hidden; position:relative;        /* no scroll */
+    overflow:hidden; position:relative; /* no scroll */
   }
   .settingsInner{ transform-origin: top center; will-change: transform; }
 
   .heading{font-size:18px; color:#cfe1ff; font-weight:800; letter-spacing:.01em; margin-top:10px}
   .sub{font-size:13px; color:var(--muted)}
-  .row{display:grid; gap:10px; margin-top:8px}
-  .rowGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .row{
+    display:grid; gap:10px; margin-top:8px;
+    align-items:start;                 /* evita stretching verticale dei contenuti */
+  }
+  .rowGrid{
+    display:grid; grid-template-columns:1fr 1fr; gap:12px;
+    align-items:start;                 /* <— NON stirare gli elementi alla stessa altezza */
+  }
   @media (max-width:390px){ .rowGrid{grid-template-columns:1fr 1fr} }
   .label{font-size:13px; color:#c4d2e6}
 
-  .chips{display:flex; gap:8px; flex-wrap:wrap}
+  .chips{
+    display:flex; gap:8px; flex-wrap:wrap;
+    align-items:center;               /* bottoni alla loro altezza naturale */
+  }
   .chip{
     padding:10px 12px; border-radius:12px; border:1px solid #273449; background:#0e1420; color:#d8e6fb;
     font-size:15px; font-weight:700; cursor:pointer; touch-action:manipulation; user-select:none;
@@ -71,7 +80,7 @@
     background:#0e1420;
   }
   .variant{
-    position:absolute; left:10px; right:10px; top:10px; /* dentro il padding dello slot */
+    position:absolute; left:10px; right:10px; top:10px;
     opacity:0; visibility:hidden; pointer-events:none; transition:opacity .15s ease;
   }
   .variant.on{ opacity:1; visibility:visible; pointer-events:auto; }
@@ -193,7 +202,7 @@
             </div>
           </div>
 
-          <!-- Slot fisso: qui dentro cambiano solo le opzioni della modalità -->
+          <!-- Slot fisso: opzioni che cambiano in base alla modalità -->
           <div class="row">
             <div id="modeSlot" class="modeSlot">
               <!-- Variante COLORI -->
@@ -354,7 +363,6 @@
 
   /* ======= Calcola altezza slot (max delle varianti) ======= */
   function measureVariantHeight(v){
-    // misuro in absolute (non altera il layout), ma devo renderla visibile
     const prev = {pos:v.style.position, vis:v.style.visibility, op:v.style.opacity};
     v.style.position='absolute'; v.style.visibility='hidden'; v.style.opacity='1';
     const h = v.scrollHeight;
@@ -366,7 +374,6 @@
     const vN = measureVariantHeight(els.variantNumber);
     const vD = measureVariantHeight(els.variantDirection);
     const maxH = Math.max(vC, vN, vD, 120);
-    // un piccolo extra per respirare
     const finalH = Math.ceil(maxH + 6);
     document.documentElement.style.setProperty('--mode-slot-h', finalH+'px');
   }
@@ -394,7 +401,6 @@
     const interval = Number(qs('.chip[data-group="interval"].selected').dataset.value)*1000;
     const countdown = Number(qs('.chip[data-group="countdown"].selected').dataset.value)*1000;
     const beep = qs('.chip[data-group="beep"].selected').dataset.value==='on';
-    // count può esistere in due varianti, ma c'è sempre una sola .selected
     const countChip = qs('.chip[data-group="count"].selected');
     const count = countChip ? Number(countChip.dataset.value) : 5;
     const dirChip = qs('.chip[data-group="direction"].selected');
@@ -420,12 +426,10 @@
 
         if(group==='mode'){
           const mode = btn.dataset.value;
-          showVariant(mode);
-          // non spostiamo nulla: lo slot ha altezza fissa
+          showVariant(mode);           // lo slot non cambia altezza (fisso)
         }
 
         if(group==='count'){
-          // cambiare numero coni aggiorna palette visiva
           const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
           const val = Number(btn.dataset.value);
           if(modeSel==='color'){
@@ -436,12 +440,11 @@
               app.colors = app.colors.slice(0, val);
             }
             updateColorPreview();
-            // il layout della variante colori potrebbe crescere → ricalcolo slot
-            setModeSlotHeight();
+            setModeSlotHeight();       // ricalcola in caso di 2 righe di chip
           }
         }
 
-        fitSettings(); // mantiene tutto “in quadro” senza scroll
+        fitSettings();                  // mantiene tutto in quadro
       }, {passive:true});
     });
   }
@@ -449,8 +452,6 @@
   /* ======= Palette ======= */
   function updateColorPreview(){
     els.colorPreview.innerHTML='';
-    const mode = qs('.chip[data-group="mode"].selected').dataset.value;
-    // anteprima solo se sei su modalità colori (ma non serve al layout)
     const countChip = qs('.chip[data-group="count"].selected');
     const count = countChip ? Number(countChip.dataset.value) : 5;
     const palette = app.colors.slice(0,count);
@@ -655,10 +656,8 @@
   $('bbStop').addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
   $('hitArea').addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
 
-  // ricalcola slot se ruoti/resize (per sicurezza)
   window.addEventListener('resize', ()=>{ setModeSlotHeight(); fitSettings(); });
   if (window.visualViewport) window.visualViewport.addEventListener('resize', ()=>{ setModeSlotHeight(); fitSettings(); });
-
 })();
 </script>
 
@@ -666,7 +665,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=16').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=18').catch(()=>{});
   });
 }
 </script>
