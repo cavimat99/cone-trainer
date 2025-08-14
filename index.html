@@ -20,10 +20,10 @@
   body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif;}
   button{ -webkit-appearance:none; appearance:none; }
 
-  /* Contenitore: una sola riga (lo START è fixed) */
+  /* app: una sola sezione; il bottone è fixed */
   .app{height:100dvh; display:grid; grid-template-rows:1fr;}
 
-  /* --- Brand hero --- */
+  /* brand */
   .brand{ padding-top: calc(env(safe-area-inset-top, 0px) + 14px); margin: 0 0 14px; }
   .brandTitle{
     margin:0; font-weight:1000; font-size:clamp(30px, 8.5vw, 42px);
@@ -37,21 +37,20 @@
   }
   .brandSub{ margin-top:8px; font-size:12.5px; color:#9db0c8; letter-spacing:.02em }
 
-  /* ============ SETTINGS ============ */
+  /* settings */
   .settingsView{
     padding:8px 14px 10px;
     background:var(--panel); border-bottom:1px solid #1b2433;
-    overflow:hidden; position:relative;          /* no scroll */
+    overflow:hidden; position:relative;
   }
   .settingsInner{ transform-origin:top center; will-change:transform; }
-
   .heading{font-size:18px; color:#cfe1ff; font-weight:800; letter-spacing:.01em; margin-top:10px}
   .sub{font-size:13px; color:var(--muted)}
-  .row{display:grid; gap:10px; margin-top:8px; align-items:start; justify-items:start;} /* FIX: niente stretch */
+  .row{display:grid; gap:10px; margin-top:8px; align-items:start; justify-items:start;}
   .rowGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
   @media (max-width:390px){ .rowGrid{grid-template-columns:1fr 1fr} }
   .label{font-size:13px; color:#c4d2e6}
-  .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center;} /* FIX: chip non si allungano */
+  .chips{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
   .chip{
     padding:10px 12px; border-radius:12px; border:1px solid #273449; background:#0e1420; color:#d8e6fb;
     font-size:15px; font-weight:700; cursor:pointer; touch-action:manipulation; user-select:none;
@@ -60,17 +59,17 @@
   .chip.selected{background:var(--accent); border-color:transparent; color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.25)}
   .hidden{display:none}
 
-  /* Compattazione automatica quando lo spazio è poco */
+  /* modalità “compatta” se serve spazio */
   .settingsView.compact .row{gap:8px; margin-top:6px}
   .settingsView.compact .rowGrid{gap:10px}
   .settingsView.compact .chip{padding:8px 10px; font-size:14px}
   .settingsView.compact .chip.small{padding:7px 9px; font-size:12px}
 
-  /* Anteprima palette */
+  /* palette */
   .dots{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .dot{width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.35)}
 
-  /* START fisso in basso (attaccato al bordo, safe-area inclusa) */
+  /* START fisso in basso */
   .startBar{
     position:fixed; left:0; right:0; bottom:0; z-index:40;
     padding: 2px 12px calc(6px + env(safe-area-inset-bottom));
@@ -85,7 +84,7 @@
     box-shadow:0 8px 18px rgba(59,130,246,.18);
   }
 
-  /* ============ RUN (full) ============ */
+  /* run */
   .runView{position:relative; background:#000; display:none}
   .runView.on{display:block}
   .stage{position:absolute; inset:0; display:grid; place-items:center; transition:background-color .18s ease}
@@ -115,7 +114,7 @@
   .bb{flex:1; max-width:280px; padding:14px 16px; border:none; border-radius:14px; font-size:18px; font-weight:800; color:#fff; cursor:pointer; touch-action:manipulation}
   .bb.primary{background:var(--accent)} .bb.danger{background:var(--danger)}
 
-  /* Modal colori */
+  /* modal colori */
   .modal{position:fixed; inset:0; display:none; align-items:flex-end; justify-content:center; background:rgba(0,0,0,.5); z-index:20}
   .modal.on{display:flex}
   .sheet{width:100%; max-width:520px; background:#0f1622; border-radius:16px 16px 0 0; border:1px solid #1b2433; padding:14px 14px max(14px, calc(14px + env(safe-area-inset-bottom)))}
@@ -136,7 +135,7 @@
     <section id="settings" class="settingsView">
       <div id="settingsInner" class="settingsInner">
 
-        <!-- HERO BRAND -->
+        <!-- HERO -->
         <div class="brand" aria-label="CONE REFLEX">
           <h1 class="brandTitle">CONE <span class="accent">REFLEX</span></h1>
           <div class="brandSub">trainer di reazione · colori, numeri o direzioni</div>
@@ -196,43 +195,40 @@
           </div>
         </div>
 
-        <div class="rowGrid">
-          <div class="row">
-            <div class="label">Countdown</div>
-            <div class="chips">
-              <button class="chip" data-group="countdown" data-value="0">Off</button>
-              <button class="chip selected" data-group="countdown" data-value="3">3</button>
-              <button class="chip" data-group="countdown" data-value="5">5</button>
-            </div>
+        <!-- Countdown: FILA DEDICATA (sempre) -->
+        <div class="row" id="countdownRow">
+          <div class="label">Countdown</div>
+          <div class="chips">
+            <button class="chip" data-group="countdown" data-value="0">Off</button>
+            <button class="chip selected" data-group="countdown" data-value="3">3</button>
+            <button class="chip" data-group="countdown" data-value="5">5</button>
           </div>
+        </div>
 
-          <!-- Quanti coni / numeri -->
-          <div class="row" id="colorCountRow">
-            <div class="label">Quanti coni</div>
-            <div class="chips">
-              <button class="chip" data-group="count" data-value="3">3</button>
-              <button class="chip selected" data-group="count" data-value="5">5</button>
-              <button class="chip" data-group="count" data-value="6">6</button>
-            </div>
+        <!-- Blocchi che cambiano per modalità -->
+        <div class="row" id="colorCountRow">
+          <div class="label">Quanti coni</div>
+          <div class="chips">
+            <button class="chip" data-group="count" data-value="3">3</button>
+            <button class="chip selected" data-group="count" data-value="5">5</button>
+            <button class="chip" data-group="count" data-value="6">6</button>
           </div>
-          <div class="row hidden" id="numberCountRow">
-            <div class="label">Quanti numeri</div>
-            <div class="chips">
-              <button class="chip" data-group="count" data-value="3">3</button>
-              <button class="chip selected" data-group="count" data-value="5">5</button>
-              <button class="chip" data-group="count" data-value="8">8</button>
-            </div>
+        </div>
+        <div class="row hidden" id="numberCountRow">
+          <div class="label">Quanti numeri</div>
+          <div class="chips">
+            <button class="chip" data-group="count" data-value="3">3</button>
+            <button class="chip selected" data-group="count" data-value="5">5</button>
+            <button class="chip" data-group="count" data-value="8">8</button>
           </div>
-
-          <!-- Direzioni -->
-          <div class="row hidden" id="directionRow">
-            <div class="label">Direzioni</div>
-            <div class="chips">
-              <button class="chip selected" data-group="direction" data-value="lat">Laterali (← →)</button>
-              <button class="chip" data-group="direction" data-value="ver">Verticali (↑ ↓)</button>
-              <button class="chip" data-group="direction" data-value="obl">Obliqui (↖ ↗ ↘ ↙)</button>
-              <button class="chip" data-group="direction" data-value="all">Tutte (8)</button>
-            </div>
+        </div>
+        <div class="row hidden" id="directionRow">
+          <div class="label">Direzioni</div>
+          <div class="chips">
+            <button class="chip selected" data-group="direction" data-value="lat">Laterali (← →)</button>
+            <button class="chip" data-group="direction" data-value="ver">Verticali (↑ ↓)</button>
+            <button class="chip" data-group="direction" data-value="obl">Obliqui (↖ ↗ ↘ ↙)</button>
+            <button class="chip" data-group="direction" data-value="all">Tutte (8)</button>
           </div>
         </div>
 
@@ -244,7 +240,7 @@
           </div>
         </div>
 
-        <!-- Palette personalizzabile -->
+        <!-- Palette colori -->
         <div class="row" id="paletteRow">
           <div class="label">Colori (modalità Colori)</div>
           <div class="chips">
@@ -253,10 +249,10 @@
           </div>
         </div>
 
-      </div><!-- /settingsInner -->
+      </div>
     </section>
 
-    <!-- START (fixed bottom) -->
+    <!-- START fixed -->
     <div class="startBar" id="startBar"><button id="startBtn" class="btn">START</button></div>
 
     <!-- RUN -->
@@ -329,37 +325,32 @@
     rafId:null, audioCtx:null, beep:true
   };
 
-  /* ======= FIT SETTINGS (adatta sopra allo START) ======= */
+  /* Adatta i settings sopra allo START (nessuna sovrapposizione) */
   function fitSettings(){
     const inner = els.settingsInner, view = els.settings;
     if(!inner || !view) return;
-    // altezza reale del bottone (fixed)
-    const sbh = els.startBar ? els.startBar.offsetHeight : 60;
 
-    // reset
+    const sbh = els.startBar ? els.startBar.offsetHeight : 60;       // altezza start
+    const clearance = 12;                                            // spazio extra anti-overlay
+
     inner.style.transform = 'scale(1)';
     inner.style.marginTop = '0px';
     view.classList.remove('compact');
 
-    // spazio disponibile sopra lo START
-    const avail = view.clientHeight - sbh;
+    const avail = view.clientHeight - sbh - clearance;               // spazio utile reale
     const needed = inner.scrollHeight;
 
-    // scala quanto basta (max=1, min=0.55)
     let scale = Math.min(1, avail / needed);
-    scale = Math.max(0.55, scale);
+    scale = Math.max(0.6, scale);                                    // non scendere sotto 60%
     inner.style.transform = `scale(${scale})`;
 
-    // attiva stile "compact" se stiamo scalando parecchio
     if (scale < 0.82) view.classList.add('compact');
 
-    // centratura verticale morbida
     const used = needed * scale;
     const extra = Math.max(0, (avail - used) * 0.15);
     inner.style.marginTop = `${extra}px`;
   }
 
-  /* ======= UI ======= */
   function readSettings(){
     const mode = qs('.chip[data-group="mode"].selected').dataset.value;
     const work = Number(qs('.chip[data-group="work"].selected').dataset.value)*1000;
@@ -374,6 +365,7 @@
     const direction = directionChip ? directionChip.dataset.value : 'lat';
     return {mode, work, rest, sets, interval, countdown, beep, count, direction};
   }
+
   function bindChips(){
     qsa('.chip').forEach(btn=>{
       btn.addEventListener('click', ()=>{
@@ -383,7 +375,6 @@
           qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.remove('selected'));
           btn.classList.add('selected');
         }
-        // toggle blocchi per modalità
         if(group==='mode'){
           const mode = btn.dataset.value;
           const isColor = mode==='color';
@@ -405,12 +396,12 @@
           }
           updateColorPreview();
         }
-        fitSettings(); // ricalcola ogni volta
+        fitSettings();
       }, {passive:true});
     });
   }
 
-  /* ======= Palette ======= */
+  /* palette */
   function updateColorPreview(){
     els.colorPreview.innerHTML='';
     const mode = qs('.chip[data-group="mode"].selected').dataset.value;
@@ -430,7 +421,7 @@
       const lab=document.createElement('label'); lab.textContent='Colore '+(i+1);
       const inp=document.createElement('input'); inp.type='color'; inp.value=palette[i] || defaultPalette[i%defaultPalette.length]; inp.dataset.index=String(i);
       wrap.append(lab,inp); els.colorsGrid.appendChild(wrap);
-    }
+    });
     els.colorModal.classList.add('on'); els.colorModal.setAttribute('aria-hidden','false');
   }
   function closeColorModal(){ els.colorModal.classList.remove('on'); els.colorModal.setAttribute('aria-hidden','true'); }
@@ -447,7 +438,7 @@
   }, {passive:true});
   els.colorModal.addEventListener('click', (e)=>{ if(e.target===els.colorModal) closeColorModal(); }, {passive:true});
 
-  /* ======= Helpers ======= */
+  /* helpers */
   const fmtSec=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
   function setBg(c){ els.stage.style.background=c; }
   function setPhase(p){ app.phase=p; els.phaseLabel.textContent=p.toUpperCase(); }
@@ -480,7 +471,7 @@
     } else if(app.phase === 'fine'){ setBg('#0a0f16'); setMainLabel('FINE ✅'); }
   }
 
-  /* ======= Audio ======= */
+  /* audio */
   function beep(freq=880, dur=0.08, type='sine'){
     if(!app.beep) return;
     try{
@@ -494,7 +485,7 @@
     }catch(e){}
   }
 
-  /* ======= Flow ======= */
+  /* flow */
   function enterRun(){ els.settings.style.display='none'; els.startBar.style.display='none'; els.run.classList.add('on'); }
   function exitRun(){ els.run.classList.remove('on'); els.settings.style.display='block'; els.startBar.style.display='flex'; fitSettings(); }
   function resetUI(){ setPhase('pronto'); setMainLabel('—'); setTimeLeft(0); setBg('#0a0f16'); els.setInfo.textContent='Set —'; }
@@ -533,8 +524,7 @@
     const now=performance.now(); const paused = now - app.pauseTs;
     app.phaseEndTs += paused; if(app.nextSignalTs) app.nextSignalTs += paused;
     app.paused=false; els.bbToggle.textContent='Pausa';
-    renderCurrent(); // ripristina subito il segnale
-    app.rafId = requestAnimationFrame(loop);
+    renderCurrent(); app.rafId = requestAnimationFrame(loop);
   }
   function stop(){
     app.running=false; app.paused=false; cancelAnimationFrame(app.rafId);
@@ -587,7 +577,7 @@
       } else if(app.mode==='number'){
         const idx=chooseNextIndex(app.numbers);
         const shown=idx+1; setBg('#0a0f16'); setMainLabel(String(shown));
-      } else { // direction
+      } else {
         const arr = DIRECTIONS[app.directionSet] || DIRECTIONS.lat;
         const idx=chooseNextIndex(arr.length);
         const sym = arr[idx]; setBg('#0a0f16'); setMainLabel(sym);
@@ -601,7 +591,7 @@
     app.rafId = requestAnimationFrame(loop);
   }
 
-  /* ======= Init & Events ======= */
+  /* init */
   bindChips();
   (function initRows(){
     const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
@@ -624,11 +614,10 @@
 })();
 </script>
 
-<!-- Service worker (se lo usi): bump per vedere subito gli update -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=17').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=18').catch(()=>{});
   });
 }
 </script>
