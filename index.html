@@ -561,7 +561,16 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+  <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    // importante cambiare la query per forzare il download del nuovo sw.js
+    navigator.serviceWorker.register('./sw.js?v=killswitch-1').catch(()=>{});
+  });
+}
+</script>
 </body>
 </html>
+
 
 
