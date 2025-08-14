@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Cone Refelx</title>
+<title>CONE REFLEX — Reaction Trainer</title>
 
-<!-- PWA / iPhone full screen -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#0a0f16" />
@@ -15,23 +14,50 @@
   :root{
     --bg:#0a0f16; --panel:#0f1622; --text:#e8eef6;
     --muted:#9db0c8; --accent:#3b82f6; --ok:#10b981; --warn:#f59e0b; --danger:#ef4444;
-    --radius:16px;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
   html, body{height:100%; overflow:hidden;}
   body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"SF Pro",Inter,Roboto,Arial,sans-serif;}
 
-  .app{height:100dvh; display:grid; grid-template-rows:1fr auto;}
+  .app{height:100dvh; display:grid; grid-template-rows: 1fr auto;}
+
+  /* --- Brand hero (refined) --- */
+  .brand{
+    padding-top: calc(env(safe-area-inset-top, 0px) + 14px);
+    margin: 0 0 14px;
+  }
+  .brandTitle{
+    margin: 0;
+    font-weight: 1000;
+    font-size: clamp(30px, 8.5vw, 42px);
+    line-height: 1.06;
+    letter-spacing: .02em;
+    color: #eef5ff;
+    text-shadow:
+      0 2px 10px rgba(59,130,246,.18),
+      0 6px 26px rgba(59,130,246,.12);
+  }
+  .brandTitle .accent{
+    background: linear-gradient(90deg,#22d3ee 0%, #3b82f6 55%, #a855f7 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 10px rgba(59,130,246,.28));
+  }
+  .brandSub{ margin-top:8px; font-size:12.5px; color:#9db0c8; letter-spacing:.02em }
 
   /* ============ SETTINGS ============ */
   .settingsView{
-    padding:max(12px, env(safe-area-inset-top)) 14px 10px;
-    display:grid; align-content:start; gap:14px; background:var(--panel); border-bottom:1px solid #1b2433;
+    padding: 8px 14px 10px;
+    background:var(--panel); border-bottom:1px solid #1b2433;
+    overflow:hidden; /* ← nessuno scroll */
+    position:relative;
   }
-  .heading{font-size:18px; color:#cfe1ff; font-weight:700; letter-spacing:.01em}
+  .settingsInner{ transform-origin: top center; will-change: transform; }
+
+  .heading{font-size:18px; color:#cfe1ff; font-weight:800; letter-spacing:.01em; margin-top:10px}
   .sub{font-size:13px; color:var(--muted)}
 
-  .row{display:grid; gap:10px}
+  .row{display:grid; gap:10px; margin-top:8px}
   .rowGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
   @media (max-width:390px){ .rowGrid{grid-template-columns:1fr 1fr} }
   .label{font-size:13px; color:#c4d2e6}
@@ -45,14 +71,13 @@
   .chip.selected{background:var(--accent); border-color:transparent; color:#fff; box-shadow:0 6px 18px rgba(59,130,246,.25)}
   .hidden{display:none}
 
-  /* anteprima palette */
+  /* Anteprima palette */
   .dots{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
   .dot{width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.35)}
 
-  /* Start in basso */
+  /* START (rimane nella seconda riga della grid, niente scroll) */
   .startBar{
-    position:relative;
-    padding:10px 12px calc(12px + env(safe-area-inset-bottom));
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
     background:linear-gradient(180deg, rgba(10,16,24,0), rgba(10,16,24,.65));
     display:flex; gap:10px; align-items:center; justify-content:center;
   }
@@ -105,146 +130,120 @@
   .modalBtns{display:flex; gap:10px; margin-top:12px}
   .btnGhost{flex:1; padding:12px 14px; border-radius:12px; border:1px solid #2a374b; background:#0e1420; color:#e8eef6; font-weight:700}
   .btnPrim{flex:1; padding:12px 14px; border-radius:12px; border:none; background:var(--accent); color:#fff; font-weight:900}
-
-  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(1px,1px,1px,1px)}
-
-  /* --- Brand hero --- */
-.brand{
-  padding-top: max(6px, env(safe-area-inset-top));
-  margin: -4px 0 8px;
-}
-.brandTitle{
-  margin: 0;
-  font-weight: 1000;
-  font-size: clamp(28px, 8vw, 40px);
-  line-height: 1.05;
-  letter-spacing: .02em;
-  color: #eaf2ff;                     /* "CONE" in bianco */
-  text-shadow: 0 2px 24px rgba(59,130,246,.22);
-}
-.brandTitle .accent{
-  background: linear-gradient(90deg,#22d3ee 0%, #3b82f6 55%, #a855f7 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 14px rgba(59,130,246,.35));
-}
-.brandSub{
-  margin-top: 6px;
-  font-size: 12px;
-  color: #9db0c8;
-  letter-spacing: .02em;
-}
-
-  
 </style>
 </head>
 <body>
   <div class="app">
 
-    <!-- SETTINGS -->
+    <!-- SETTINGS (nessuno scroll: il contenuto è in settingsInner e si adatta) -->
     <section id="settings" class="settingsView">
-      <div class="brand" aria-label="CONE REFLEX">
-  <h1 class="brandTitle">CONE <span class="accent">REFLEX</span></h1>
-</div>
-      <div>
+      <div id="settingsInner" class="settingsInner">
+
+        <!-- HERO BRAND -->
+        <div class="brand" aria-label="CONE REFLEX">
+          <h1 class="brandTitle">CONE <span class="accent">REFLEX</span></h1>
+          <div class="brandSub">trainer di reazione · colori o numeri</div>
+        </div>
+
         <div class="heading">Imposta allenamento</div>
         <div class="sub">Scegli parametri e premi Start.</div>
-      </div>
 
-      <div class="row">
-        <div class="label">Modalità</div>
-        <div class="chips">
-          <button class="chip selected" data-group="mode" data-value="color">Colori</button>
-          <button class="chip" data-group="mode" data-value="number">Numeri</button>
-        </div>
-      </div>
-
-      <div class="rowGrid">
         <div class="row">
-          <div class="label">Lavoro (s)</div>
+          <div class="label">Modalità</div>
           <div class="chips">
-            <button class="chip" data-group="work" data-value="15">15</button>
-            <button class="chip" data-group="work" data-value="20">20</button>
-            <button class="chip selected" data-group="work" data-value="30">30</button>
-            <button class="chip" data-group="work" data-value="45">45</button>
-            <button class="chip" data-group="work" data-value="60">60</button>
+            <button class="chip selected" data-group="mode" data-value="color">Colori</button>
+            <button class="chip" data-group="mode" data-value="number">Numeri</button>
           </div>
         </div>
+
+        <div class="rowGrid">
+          <div class="row">
+            <div class="label">Lavoro (s)</div>
+            <div class="chips">
+              <button class="chip" data-group="work" data-value="15">15</button>
+              <button class="chip" data-group="work" data-value="20">20</button>
+              <button class="chip selected" data-group="work" data-value="30">30</button>
+              <button class="chip" data-group="work" data-value="45">45</button>
+              <button class="chip" data-group="work" data-value="60">60</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="label">Pausa (s)</div>
+            <div class="chips">
+              <button class="chip" data-group="rest" data-value="20">20</button>
+              <button class="chip selected" data-group="rest" data-value="30">30</button>
+              <button class="chip" data-group="rest" data-value="40">40</button>
+              <button class="chip" data-group="rest" data-value="60">60</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rowGrid">
+          <div class="row">
+            <div class="label">Set</div>
+            <div class="chips">
+              <button class="chip" data-group="sets" data-value="3">3</button>
+              <button class="chip selected" data-group="sets" data-value="5">5</button>
+              <button class="chip" data-group="sets" data-value="8">8</button>
+              <button class="chip" data-group="sets" data-value="10">10</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="label">Intervallo segnali (s)</div>
+            <div class="chips">
+              <button class="chip" data-group="interval" data-value="3">3</button>
+              <button class="chip selected" data-group="interval" data-value="5">5</button>
+              <button class="chip" data-group="interval" data-value="8">8</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rowGrid">
+          <div class="row">
+            <div class="label">Countdown</div>
+            <div class="chips">
+              <button class="chip" data-group="countdown" data-value="0">Off</button>
+              <button class="chip selected" data-group="countdown" data-value="3">3</button>
+              <button class="chip" data-group="countdown" data-value="5">5</button>
+            </div>
+          </div>
+
+          <div class="row" id="colorCountRow">
+            <div class="label">Quanti coni</div>
+            <div class="chips">
+              <button class="chip" data-group="count" data-value="3">3</button>
+              <button class="chip selected" data-group="count" data-value="5">5</button>
+              <button class="chip" data-group="count" data-value="6">6</button>
+            </div>
+          </div>
+          <div class="row hidden" id="numberCountRow">
+            <div class="label">Quanti numeri</div>
+            <div class="chips">
+              <button class="chip" data-group="count" data-value="3">3</button>
+              <button class="chip selected" data-group="count" data-value="5">5</button>
+              <button class="chip" data-group="count" data-value="8">8</button>
+            </div>
+          </div>
+        </div>
+
         <div class="row">
-          <div class="label">Pausa (s)</div>
+          <div class="label">Opzioni suono</div>
           <div class="chips">
-            <button class="chip" data-group="rest" data-value="20">20</button>
-            <button class="chip selected" data-group="rest" data-value="30">30</button>
-            <button class="chip" data-group="rest" data-value="40">40</button>
-            <button class="chip" data-group="rest" data-value="60">60</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="rowGrid">
-        <div class="row">
-          <div class="label">Set</div>
-          <div class="chips">
-            <button class="chip" data-group="sets" data-value="3">3</button>
-            <button class="chip selected" data-group="sets" data-value="5">5</button>
-            <button class="chip" data-group="sets" data-value="8">8</button>
-            <button class="chip" data-group="sets" data-value="10">10</button>
-          </div>
-        </div>
-        <div class="row">
-          <div class="label">Intervallo segnali (s)</div>
-          <div class="chips">
-            <button class="chip" data-group="interval" data-value="3">3</button>
-            <button class="chip selected" data-group="interval" data-value="5">5</button>
-            <button class="chip" data-group="interval" data-value="8">8</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="rowGrid">
-        <div class="row">
-          <div class="label">Countdown</div>
-          <div class="chips">
-            <button class="chip" data-group="countdown" data-value="0">Off</button>
-            <button class="chip selected" data-group="countdown" data-value="3">3</button>
-            <button class="chip" data-group="countdown" data-value="5">5</button>
+            <button class="chip small selected" data-group="beep" data-value="on">Suono ON</button>
+            <button class="chip small" data-group="beep" data-value="off">Suono OFF</button>
           </div>
         </div>
 
-        <div class="row" id="colorCountRow">
-          <div class="label">Quanti coni</div>
+        <!-- Palette personalizzabile -->
+        <div class="row" id="paletteRow">
+          <div class="label">Colori (modalità Colori)</div>
           <div class="chips">
-            <button class="chip" data-group="count" data-value="3">3</button>
-            <button class="chip selected" data-group="count" data-value="5">5</button>
-            <button class="chip" data-group="count" data-value="6">6</button>
+            <div class="dots" id="colorPreview"></div>
+            <button class="chip small" id="editColorsBtn">Modifica colori</button>
           </div>
         </div>
-        <div class="row hidden" id="numberCountRow">
-          <div class="label">Quanti numeri</div>
-          <div class="chips">
-            <button class="chip" data-group="count" data-value="3">3</button>
-            <button class="chip selected" data-group="count" data-value="5">5</button>
-            <button class="chip" data-group="count" data-value="8">8</button>
-          </div>
-        </div>
-      </div>
 
-      <div class="row">
-        <div class="label">Opzioni suono</div>
-        <div class="chips">
-          <button class="chip small selected" data-group="beep" data-value="on">Suono ON</button>
-          <button class="chip small" data-group="beep" data-value="off">Suono OFF</button>
-        </div>
-      </div>
-
-      <!-- Palette personalizzabile -->
-      <div class="row" id="paletteRow">
-        <div class="label">Colori (modalità Colori)</div>
-        <div class="chips">
-          <div class="dots" id="colorPreview"></div>
-          <button class="chip small" id="editColorsBtn">Modifica colori</button>
-        </div>
-      </div>
+      </div><!-- /settingsInner -->
     </section>
 
     <!-- START -->
@@ -288,13 +287,24 @@
   const qsa = (sel,root=document)=>Array.from(root.querySelectorAll(sel));
 
   const els = {
-    settings:$('settings'), startBar:$('startBar'), startBtn:$('startBtn'),
-    colorCountRow:$('colorCountRow'), numberCountRow:$('numberCountRow'),
-    paletteRow:$('paletteRow'), colorPreview:$('colorPreview'),
-    colorModal:$('colorModal'), colorsGrid:$('colorsGrid'), saveColors:$('saveColors'), cancelColors:$('cancelColors'), editColorsBtn:$('editColorsBtn'),
-    run:$('run'), stage:$('stage'), flash:$('flash'),
-    setInfo:$('setInfo'), phaseLabel:$('phaseLabel'), mainLabel:$('mainLabel'), timeLeft:$('timeLeft'),
-    bbToggle:$('bbToggle'), bbStop:$('bbStop'), hitArea:$('hitArea'),
+    // settings
+    settings: $('settings'),
+    settingsInner: $('settingsInner'),
+    startBar: $('startBar'),
+    startBtn: $('startBtn'),
+    colorCountRow: $('colorCountRow'),
+    numberCountRow: $('numberCountRow'),
+    paletteRow: $('paletteRow'),
+    colorPreview: $('colorPreview'),
+    colorModal: $('colorModal'),
+    colorsGrid: $('colorsGrid'),
+    saveColors: $('saveColors'),
+    cancelColors: $('cancelColors'),
+    editColorsBtn: $('editColorsBtn'),
+    // run
+    run: $('run'), stage: $('stage'), flash: $('flash'),
+    setInfo: $('setInfo'), phaseLabel: $('phaseLabel'), mainLabel: $('mainLabel'), timeLeft: $('timeLeft'),
+    bbToggle: $('bbToggle'), bbStop: $('bbStop'), hitArea: $('hitArea'),
   };
 
   const defaultPalette = ['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ff9f0a','#32ade6','#ff2d55'];
@@ -305,14 +315,25 @@
     count:5, colors:defaultPalette.slice(0,5), numbers:5,
     currentIdx:-1, setIndex:0, totalSets:5,
     startTs:0, phaseEndTs:0, nextSignalTs:0, pauseTs:0,
-    rafId:null, audioCtx:null, lastSpoken:-1,
+    rafId:null, audioCtx:null,
     beep:true
   };
 
-  /* ======= UI: chips ======= */
-  function selectInGroup(group, value){
-    qsa(`.chip[data-group="${group}"]`).forEach(b=>b.classList.toggle('selected', b.dataset.value===String(value)));
+  /* ======= FIT SETTINGS (no-scroll) ======= */
+  function fitSettings(){
+    const inner = els.settingsInner, view = els.settings;
+    if(!inner || !view) return;
+    inner.style.transform = 'scale(1)'; inner.style.marginTop = '0px';
+    const avail = view.clientHeight;
+    const needed = inner.scrollHeight;
+    const scale = Math.min(1, avail / needed);
+    inner.style.transform = `scale(${scale})`;
+    const used = needed * scale;
+    const extra = Math.max(0, (avail - used) * 0.15);
+    inner.style.marginTop = `${extra}px`;
   }
+
+  /* ======= UI: chips ======= */
   function readSettings(){
     const mode = qs('.chip[data-group="mode"].selected').dataset.value;
     const work = Number(qs('.chip[data-group="work"].selected').dataset.value)*1000;
@@ -344,7 +365,6 @@
         if(group==='count'){ // cambia numero coni/numeri
           const val = Number(btn.dataset.value);
           if(qs('.chip[data-group="mode"].selected').dataset.value==='color'){
-            // adegua palette alla nuova quantità
             if(app.colors.length < val){
               const more = defaultPalette.slice(app.colors.length, val);
               app.colors = app.colors.concat(more);
@@ -354,11 +374,12 @@
             updateColorPreview();
           }
         }
+        fitSettings(); // ← ricalcola per mantenere tutto visibile
       }, {passive:true});
     });
   }
 
-  /* ======= Palette / colori ======= */
+  /* ======= Palette ======= */
   function updateColorPreview(){
     els.colorPreview.innerHTML='';
     const mode = qs('.chip[data-group="mode"].selected').dataset.value;
@@ -396,7 +417,6 @@
   els.colorModal.addEventListener('click', (e)=>{ if(e.target===els.colorModal) closeColorModal(); }, {passive:true});
 
   /* ======= Helpers ======= */
-  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   const fmtSec=(ms)=> (Math.ceil(ms/100)/10).toFixed(1);
   function setBg(c){ els.stage.style.background=c; }
   function setPhase(p){ app.phase=p; els.phaseLabel.textContent=p.toUpperCase(); }
@@ -406,37 +426,21 @@
   function chooseNextIndex(pool){ if(pool<=1) return 0; let i; do{i=Math.floor(Math.random()*pool);}while(i===app.currentIdx); return (app.currentIdx=i); }
   function flashEdge(){ els.flash.classList.remove('on'); void els.flash.offsetWidth; els.flash.classList.add('on'); }
 
-  // 👉 NEW: ridisegna subito lo stato corrente quando riprendi (numero/colore o testo fase)
+  // Ridisegna subito lo stato corrente quando riprendi
   function renderCurrent(){
     if(app.phase === 'work'){
       if(app.mode === 'color'){
         if(app.currentIdx >= 0){
           const c = app.colors[app.currentIdx] || '#0a0f16';
-          setBg(c);
-          setMainLabel(`#${app.currentIdx+1}`);
-        } else {
-          setBg('#0a0f16');
-          setMainLabel('VAI!');
-        }
-      } else { // number
-        if(app.currentIdx >= 0){
-          setBg('#0a0f16');
-          setMainLabel(String(app.currentIdx+1));
-        } else {
-          setBg('#0a0f16');
-          setMainLabel('VAI!');
-        }
+          setBg(c); setMainLabel(`#${app.currentIdx+1}`);
+        } else { setBg('#0a0f16'); setMainLabel('VAI!'); }
+      } else {
+        if(app.currentIdx >= 0){ setBg('#0a0f16'); setMainLabel(String(app.currentIdx+1)); }
+        else { setBg('#0a0f16'); setMainLabel('VAI!'); }
       }
-    } else if(app.phase === 'rest'){
-      setBg('#0a0f16');
-      setMainLabel('RECUPERO');
-    } else if(app.phase === 'countdown'){
-      setBg('#0a0f16');
-      setMainLabel('PARTENZA');
-    } else if(app.phase === 'fine'){
-      setBg('#0a0f16');
-      setMainLabel('FINE ✅');
-    }
+    } else if(app.phase === 'rest'){ setBg('#0a0f16'); setMainLabel('RECUPERO');
+    } else if(app.phase === 'countdown'){ setBg('#0a0f16'); setMainLabel('PARTENZA');
+    } else if(app.phase === 'fine'){ setBg('#0a0f16'); setMainLabel('FINE ✅'); }
   }
 
   /* ======= Audio ======= */
@@ -455,13 +459,12 @@
 
   /* ======= Flow ======= */
   function enterRun(){ els.settings.style.display='none'; els.startBar.style.display='none'; els.run.classList.add('on'); }
-  function exitRun(){ els.run.classList.remove('on'); els.settings.style.display='grid'; els.startBar.style.display='flex'; }
-  function resetUI(){ setPhase('pronto'); setMainLabel('—'); setTimeLeft(0); setBg('#0a0f16'); els.setInfo.textContent='Set —'; app.lastSpoken=-1; }
+  function exitRun(){ els.run.classList.remove('on'); els.settings.style.display='block'; els.startBar.style.display='flex'; fitSettings(); }
+  function resetUI(){ setPhase('pronto'); setMainLabel('—'); setTimeLeft(0); setBg('#0a0f16'); els.setInfo.textContent='Set —'; }
 
   function start(){
     if(app.running) return;
     const cfg = readSettings();
-    // aggiorna stato
     app = {
       ...app,
       running:true, paused:false, phase:(cfg.countdown>0?'countdown':'work'),
@@ -469,8 +472,7 @@
       workMs:cfg.work, restMs:cfg.rest, intervalMs:cfg.interval, countdownMs:cfg.countdown,
       count:cfg.count, numbers:cfg.count, beep:cfg.beep,
       colors: app.colors.slice(0, cfg.count),
-      currentIdx:-1,
-      startTs:performance.now()
+      currentIdx:-1, startTs:performance.now()
     };
     app.phaseEndTs = app.startTs + (app.countdownMs>0?app.countdownMs:app.workMs);
     app.nextSignalTs = (app.countdownMs>0?0:app.startTs);
@@ -488,19 +490,14 @@
     app.paused=true; app.pauseTs=performance.now();
     cancelAnimationFrame(app.rafId); setMainLabel('PAUSA'); els.bbToggle.textContent='Riprendi';
   }
-
   function resume(){
     if(!app.running || !app.paused) return;
     const now=performance.now(); const paused = now - app.pauseTs;
     app.phaseEndTs += paused; if(app.nextSignalTs) app.nextSignalTs += paused;
     app.paused=false; els.bbToggle.textContent='Pausa';
-
-    // 👉 mostra SUBITO il contenuto (numero/colore o testo fase)
-    renderCurrent();
-
+    renderCurrent(); // mostra subito numero/colore
     app.rafId = requestAnimationFrame(loop);
   }
-
   function stop(){
     app.running=false; app.paused=false; cancelAnimationFrame(app.rafId);
     resetUI(); exitRun();
@@ -564,49 +561,36 @@
 
   /* ======= Events ======= */
   bindChips();
-  // sincronizza righe iniziali
+  // inizializza righe e anteprima poi adatta
   (function initRows(){
     const modeSel = qs('.chip[data-group="mode"].selected').dataset.value;
     els.colorCountRow.classList.toggle('hidden', modeSel!=='color');
     els.numberCountRow.classList.toggle('hidden', modeSel!=='number');
     els.paletteRow.classList.toggle('hidden', modeSel!=='color');
     updateColorPreview();
+    fitSettings();
   })();
 
-  // Start
+  // Start / Controls
   els.startBtn.addEventListener('click', start, {passive:true});
-  // Bottom bar
   els.bbToggle.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
-  // Stop immediato
   els.bbStop.addEventListener('click', ()=>{ if(app.running) stop(); }, {passive:true});
-  // Tap centro = pausa/riprendi
   els.hitArea.addEventListener('click', ()=>{ if(!app.running) return; if(app.paused) resume(); else pause(); }, {passive:true});
 
+  // adatta su load/resize/rotazione
+  window.addEventListener('load', fitSettings);
+  window.addEventListener('resize', fitSettings);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', fitSettings);
 })();
 </script>
 
-<!-- SW register: aggiorna anche sw.js a VERSION 'v6' -->
+<!-- Service worker (se lo usi): bump versione per vedere subito gli update -->
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js?v=6').catch(()=>{});
-  });
-}
-</script>
-  <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    // importante cambiare la query per forzare il download del nuovo sw.js
-    navigator.serviceWorker.register('./sw.js?v=killswitch-1').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js?v=13').catch(()=>{});
   });
 }
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
